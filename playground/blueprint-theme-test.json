@@ -19,11 +19,8 @@
     {
       "step": "installTheme",
       "themeData": {
-        "resource": "git:directory",
-        "url": "https://github.com/dknauss/dirtbag",
-        "ref": "cf70cb5b65ab854f19433b7224bfcf187d01d7e7",
-        "refType": "commit",
-        "path": "/"
+        "resource": "url",
+        "url": "https://wordpress-playground-cors-proxy.net/?https://github.com/dknauss/dirtbag/archive/cf70cb5b65ab854f19433b7224bfcf187d01d7e7.zip"
       },
       "options": {
         "activate": true,
