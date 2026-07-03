@@ -74,11 +74,45 @@ if ( ! function_exists( 'dirtbag_playground_seed_users' ) ) {
 						'description'  => isset( $user['description'] ) ? $user['description'] : '',
 					)
 				);
+				dirtbag_playground_assert_user_identity( $user_id, $user );
 				$author_ids[ $user['user_login'] ] = (int) $user_id;
 			}
 		}
 		$author_ids['admin'] = get_current_user_id() ? get_current_user_id() : 1;
 		return $author_ids;
+	}
+}
+
+if ( ! function_exists( 'dirtbag_playground_assert_user_identity' ) ) {
+	/**
+	 * Re-assert a seeded user's identity fields until they persist.
+	 *
+	 * Playground's WASM PHP can transiently fail preg-based sanitization
+	 * during boot, which empties display_name and user_nicename on insert or
+	 * update. An unnamed author then renders as a nameless link and trips the
+	 * axe link-name gate. Read the row back and retry until it matches.
+	 *
+	 * @param int   $user_id User ID.
+	 * @param array $user    Seed user data.
+	 */
+	function dirtbag_playground_assert_user_identity( $user_id, $user ) {
+		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+			clean_user_cache( $user_id );
+			$fresh = get_userdata( $user_id );
+			if ( $fresh
+				&& $fresh->display_name === $user['display_name']
+				&& $fresh->user_nicename === $user['user_nicename'] ) {
+				return;
+			}
+			wp_update_user(
+				array(
+					'ID'            => $user_id,
+					'display_name'  => $user['display_name'],
+					'user_nicename' => $user['user_nicename'],
+				)
+			);
+		}
+		error_log( 'dirtbag seed: user ' . $user_id . ' identity fields did not persist after retries.' );
 	}
 }
 
