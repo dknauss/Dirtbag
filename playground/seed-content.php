@@ -229,6 +229,8 @@ if ( ! function_exists( 'dirtbag_playground_seed_posts' ) ) {
 				'post_title'        => $post['post_title'],
 				'post_excerpt'      => $post['post_excerpt'],
 				'post_status'       => $post['post_status'],
+				'comment_status'    => isset( $post['comment_status'] ) ? $post['comment_status'] : ( 'post' === $post['post_type'] ? 'open' : 'closed' ),
+				'ping_status'       => isset( $post['ping_status'] ) ? $post['ping_status'] : 'closed',
 				'post_name'         => $post['post_name'],
 				'post_modified'     => $post['post_modified'],
 				'post_modified_gmt' => $post['post_modified_gmt'],

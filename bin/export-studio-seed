@@ -315,6 +315,8 @@ def export_seed(studio_path: Path) -> tuple[dict, list[tuple[Path, Path]], list[
             "post_title": str(post["post_title"] or ""),
             "post_excerpt": str(post["post_excerpt"] or ""),
             "post_status": str(post["post_status"] or "publish"),
+            "comment_status": str(post["comment_status"] or "closed"),
+            "ping_status": str(post["ping_status"] or "closed"),
             "post_name": str(post["post_name"] or ""),
             "post_modified": str(post["post_modified"] or ""),
             "post_modified_gmt": str(post["post_modified_gmt"] or ""),
