@@ -5,4 +5,4 @@ contact_links:
     about: Please report suspected security vulnerabilities privately, not in public issues.
   - name: WordPress.org theme support
     url: https://wordpress.org/support/theme/dirtbag/
-    about: Use WordPress.org support for site-specific help after the theme is listed there.
+    about: Use WordPress.org support for site-specific help with the listed theme.

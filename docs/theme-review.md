@@ -1,6 +1,8 @@
 # WordPress.org theme review notes
 
-Dirtbag aims to be ready for WordPress.org theme review without losing its small-site philosophy.
+Dirtbag is listed in the WordPress.org theme directory at [wordpress.org/themes/dirtbag](https://wordpress.org/themes/dirtbag/). Keep future releases review-ready without losing the small-site philosophy.
+
+Accepted listing baseline: **0.1.16**, published on WordPress.org on **June 30, 2026** after themes.trac ticket **#277839**.
 
 ## Required theme files
 
@@ -60,7 +62,7 @@ Keep third-party resource credits in `readme.txt`. Current credits include:
 - Dirtbag truck icon adaptations generated from that source.
 - Typography scale inspiration from Butterick’s Practical Typography.
 
-## Release checklist
+## Future release checklist
 
 1. Run `bin/package-check`.
 2. Run the official Theme Check plugin.
@@ -68,6 +70,7 @@ Keep third-party resource credits in `readme.txt`. Current credits include:
 4. Test keyboard navigation and small viewports.
 5. Validate rendered HTML on representative pages.
 6. Confirm package contents before uploading.
+7. After upload/approval, verify the live listing, support forum, translations link, screenshots, version number, and download package at [wordpress.org/themes/dirtbag](https://wordpress.org/themes/dirtbag/).
 
 ## Upload scanner triage (Theme Check)
 
@@ -82,8 +85,8 @@ wp i18n …                                      # (Theme Check runs via the adm
                                                #  or run_themechecks_against_theme())
 ```
 
-The 0.1.8 release zip produced **no REQUIRED or WARNING** notes. The remaining
-notes are non-blocking and intentional:
+The accepted 0.1.16 package produced no unresolved blocking Theme Check notes.
+The recurring non-blocking notes below are intentional unless the relevant code changes:
 
 | Note | Level | Verdict |
 | --- | --- | --- |

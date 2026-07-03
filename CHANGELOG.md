@@ -6,6 +6,30 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+## [0.1.17] - 2026-07-03
+
+### Added
+
+- Add the WordPress.org theme listing, support forum, and GitHub Sponsors donation link to the WordPress.org readme and maintainer docs.
+
+### Changed
+
+- Reframe theme-review/testing/backlog docs for post-acceptance maintenance and future WordPress.org releases.
+
+## [0.1.16] - 2026-06-30
+
+### Changed
+
+- Theme review (themes.trac #277839): refreshed the front-page screenshot to match the current two-column masthead and dynamic Query Loop sections. Version bump for the WordPress.org resubmission accepted in the theme directory.
+
+## [0.1.15] - 2026-06-23
+
+### Changed
+
+- Theme review (themes.trac #277839): replaced real external links in the Blogroll with XFN pattern with example.com placeholders and generic relationship labels, so the theme ships no hard-coded third-party URLs.
+- Made every user-facing string in `patterns/front-page.php` translation-ready and replaced hard-coded demo post links with dynamic Query Loop blocks.
+- Added explicit licence type and URL details to each resource entry in `readme.txt`, clarified that photographs are Playground-only demo media except as incorporated into `screenshot.png`, and removed the Butterick's Practical Typography influence note from bundled-resource credits.
+
 ## [0.1.14] - 2026-06-21
 
 ### Changed
@@ -177,7 +201,11 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 - Initial Dirtbag block theme release.
 
-[Unreleased]: https://github.com/dknauss/dirtbag/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/dknauss/dirtbag/compare/v0.1.17...HEAD
+[0.1.17]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.17
+[0.1.16]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.16
+[0.1.15]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.15
+[0.1.14]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.14
 [0.1.4]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.4
 [0.1.3]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.3
 [0.1.2]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.2

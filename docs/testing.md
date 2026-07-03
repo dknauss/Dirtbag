@@ -81,7 +81,7 @@ Run manual and automated checks:
 
 ## Optional external checks
 
-Before a formal public release:
+Before each WordPress.org release or static-demo refresh:
 
 - WordPress Theme Check plugin.
 - W3C/Nu HTML validation on rendered pages.
