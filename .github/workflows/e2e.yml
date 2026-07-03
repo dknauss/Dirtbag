@@ -73,9 +73,13 @@ jobs:
             npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
-            # bare 200 can precede the seed import). Bail early if the server died.
+            # bare 200 can precede the seed import) AND the seeded author's
+            # nicename survived: a flaky boot can empty user identity fields,
+            # which later fails the axe link-name gate as a nameless author
+            # link. Bail early if the server died.
             for i in $(seq 1 60); do
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then return 0; fi
+              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image \
+                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -89,7 +93,7 @@ jobs:
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image) after 3 attempts; aborting so the suite does not run against an unseeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
       - name: Run Playwright (smoke + accessibility)
@@ -160,9 +164,13 @@ jobs:
             npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
-            # bare 200 can precede the seed import). Bail early if the server died.
+            # bare 200 can precede the seed import) AND the seeded author's
+            # nicename survived: a flaky boot can empty user identity fields,
+            # which later fails the axe link-name gate as a nameless author
+            # link. Bail early if the server died.
             for i in $(seq 1 60); do
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then return 0; fi
+              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image \
+                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -176,7 +184,7 @@ jobs:
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image) after 3 attempts; aborting so the suite does not run against an unseeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
       - name: Run per-style axe sweep
