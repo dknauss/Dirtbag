@@ -4,7 +4,8 @@ Thanks for using Dirtbag.
 
 ## Where to get help
 
-- **Bug reports:** Use the GitHub bug report issue form.
+- **Site-specific help:** Use the [WordPress.org Dirtbag support forum](https://wordpress.org/support/theme/dirtbag/).
+- **Bug reports:** Use the GitHub bug report issue form when you can reproduce a theme bug.
 - **Compatibility or theme-review findings:** Use the GitHub compatibility report issue form.
 - **Small improvements:** Use the GitHub enhancement request form.
 - **Security vulnerabilities:** Use GitHub private vulnerability reporting. Do not open a public issue for security reports.

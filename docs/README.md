@@ -14,8 +14,10 @@ This folder holds repo-facing documentation for the Dirtbag WordPress block them
 - [Backlog](backlog.md) — planned checks and improvements.
 - [WordPress contribution notes](wordpress-contributions.md) — notable WordPress/Gutenberg/core contributions and a `wptexturize()` apostrophe deep dive.
 
-## Live previews
+## Official listing and live previews
 
+- [WordPress.org theme listing](https://wordpress.org/themes/dirtbag/) — official distribution package, screenshots, downloads, reviews, translations, and theme metadata.
+- [WordPress.org support forum](https://wordpress.org/support/theme/dirtbag/) — site-specific help and first-user feedback.
 - [Playground preview: stable tag](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/dirtbag/main/playground/blueprint-stable.json)
 - [Playground preview: main branch](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/dirtbag/main/playground/blueprint-main.json)
 - [Static demo (GitHub Pages)](https://dknauss.github.io/dirtbag/) — a crawled, backend-free snapshot. See [github-pages-static-export.md](github-pages-static-export.md).

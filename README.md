@@ -2,7 +2,7 @@
 
 [![Package Check](https://github.com/dknauss/dirtbag/actions/workflows/package-check.yml/badge.svg)](https://github.com/dknauss/dirtbag/actions/workflows/package-check.yml) [![Latest Tag](https://img.shields.io/github/v/tag/dknauss/dirtbag)](https://github.com/dknauss/dirtbag/tags) [![Docs](https://img.shields.io/badge/docs-available-0a7ea4.svg)](docs/)
 [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![WordPress 7.0+](https://img.shields.io/badge/WordPress-7.0%2B-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/)
+[![WordPress 7.0+](https://img.shields.io/badge/WordPress-7.0%2B-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/) [![WordPress.org Theme](https://img.shields.io/badge/WordPress.org-theme-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/themes/dirtbag/)
 [![Tested up to WP 7.0](https://img.shields.io/badge/tested%20up%20to-WP%207.0-21759b.svg?logo=wordpress&logoColor=white)](https://wordpress.org/)
 [![PHP 7.2+](https://img.shields.io/badge/PHP-7.2%2B-777bb4.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![▶ Playground (stable tag)](https://img.shields.io/badge/▶_Playground-stable_tag-3858e9.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/dirtbag/main/playground/blueprint-stable.json) [![▶ Playground (main)](https://img.shields.io/badge/▶_Playground-main_branch-6e40c9.svg?logo=wordpress&logoColor=white)](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/dknauss/dirtbag/main/playground/blueprint-main.json) [![🌐 Live static demo](https://img.shields.io/badge/🌐_Live-static_demo-0a7ea4.svg)](https://dknauss.github.io/dirtbag/)
@@ -10,6 +10,8 @@
 **Dirtbag is a simple WordPress block theme that does more with less.** It's for people who want to learn about WordPress theme design and front-end development by stripping down to fundamentals and building up from there. If you just dig the indieweb and dirtbag aesthetic, that's cool too, but I hope it's a gateway drug to tinkering.
 
 Dirtbag favours plain HTML markup, as little JS (and CSS) as possible, core WordPress blocks, the fonts everyone already has, visible feeds, and old/open-web habits over front-end machinery.
+
+> **Official listing:** Dirtbag is available in the WordPress.org theme directory at **[wordpress.org/themes/dirtbag](https://wordpress.org/themes/dirtbag/)**. Use the [WordPress.org support forum](https://wordpress.org/support/theme/dirtbag/) for site-specific help.
 
 > **Live demo:** A static, backend-free snapshot of the theme's demo site is published at **[dknauss.github.io/dirtbag](https://dknauss.github.io/dirtbag/)** — a crawl of the WordPress demo deployed to GitHub Pages. Posts, archives, feeds, sitemaps, and all six style variations work; search and comment submission don't (no server). See [docs/github-pages-static-export.md](docs/github-pages-static-export.md) for how it's built and deployed.
 
@@ -41,6 +43,8 @@ From a WordPress installation:
 cd wp-content/themes
 git clone https://github.com/dknauss/dirtbag.git dirtbag
 ```
+
+Or install the official package from **[Appearance → Themes → Add New](https://wordpress.org/themes/dirtbag/)** by searching for "Dirtbag".
 
 Then in WordPress:
 

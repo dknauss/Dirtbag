@@ -1,6 +1,6 @@
 # Dirtbag backlog
 
-Planned checks and improvements before a formal public release or WordPress.org theme submission.
+Planned checks and improvements for future WordPress.org releases, static-demo refreshes, and maintenance work after the initial directory acceptance.
 
 ## Release QA
 
