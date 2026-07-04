@@ -28,13 +28,15 @@ historic Trac comment.
   promise the software cannot keep.
 - [WordPress/gutenberg#67711](https://github.com/WordPress/gutenberg/pull/67711):
   merged spelling, grammar, and clarity corrections in the DataViews package docs.
-- [WordPress/two-factor#859](https://github.com/WordPress/two-factor/pull/859):
-  moved the Two Factor plugin's rate-limit gate before provider preprocessing and
-  invalidated provider tokens when the delay fires. This superseded the narrower
+- [WordPress/two-factor#917](https://github.com/WordPress/two-factor/pull/917)
+  (open; rebased reopen of [#859](https://github.com/WordPress/two-factor/pull/859),
+  which was closed by accident on 2026-06-14): moves the Two Factor plugin's
+  rate-limit gate before provider preprocessing and invalidated provider tokens when
+  the delay fires. This superseded the narrower
   [#848](https://github.com/WordPress/two-factor/pull/848) fix for email resend.
 - [WordPress/two-factor#877](https://github.com/WordPress/two-factor/pull/877):
-  proposed failing closed when `random_bytes()` is unavailable during login nonce
-  generation, replacing a weak legacy fallback.
+  **merged 2026-06-29** — fails closed when `random_bytes()` is unavailable during
+  login nonce generation, replacing a weak legacy fallback.
 
 ### Interesting reports and design questions
 
@@ -47,7 +49,10 @@ historic Trac comment.
   name — its `aria-label` is supplied only at runtime by the Interactivity API
   (`data-wp-bind--aria-label`, restored in #78426), so it fails `button-name` with
   JavaScript off or before hydration. Dirtbag ships a static-`aria-label` fallback
-  (`functions.php`, 0.1.12) and proposes the same fix in core.
+  (`functions.php`, 0.1.12). A maintainer triaged the issue, and the same static-label
+  fix is now proposed upstream in
+  [WordPress/gutenberg#79440](https://github.com/WordPress/gutenberg/pull/79440)
+  (opened independently); Dirtbag backs that PR rather than filing a duplicate.
 - [WordPress/gutenberg#42345](https://github.com/WordPress/gutenberg/issues/42345):
   single quotes after bold text can be curled the wrong way on output. This is the
   `wptexturize()` / old core-text-filter problem described below.

@@ -16,8 +16,8 @@ Captured evidence lives in [`screenshots/`](screenshots/):
 - `current-wp-dirtbag-fix.png` / `current-wp-dirtbag-fix-axe.json`
 - `caption-repro-summary.json`
 
-Draft supporting comment for the live upstream Gallery issue:
-[`gutenberg-gallery-caption-accessibility-comment-draft.md`](gutenberg-gallery-caption-accessibility-comment-draft.md).
+A supporting comment for the live upstream Gallery issue is not yet drafted — the
+repro and axe evidence above are the raw material for it.
 
 ## Chrome float-in-grid below-the-fold repro
 
