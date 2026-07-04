@@ -1,0 +1,38 @@
+diff --git a/packages/block-library/src/editor.scss b/packages/block-library/src/editor.scss
+index d7eb47d..627528d 100644
+--- a/packages/block-library/src/editor.scss
++++ b/packages/block-library/src/editor.scss
+@@ -37,6 +37,7 @@
+ @use "./post-author/editor.scss" as *;
+ @use "./playlist/editor.scss" as *;
+ @use "./post-excerpt/editor.scss" as *;
++@use "./post-title/editor.scss" as *;
+ @use "./pullquote/editor.scss" as *;
+ @use "./rss/editor.scss" as *;
+ @use "./search/editor.scss" as *;
+diff --git a/packages/block-library/src/post-title/editor.scss b/packages/block-library/src/post-title/editor.scss
+new file mode 100644
+index 0000000..17394d8
+--- /dev/null
++++ b/packages/block-library/src/post-title/editor.scss
+@@ -0,0 +1,8 @@
++// `RichText` cannot be used with an inline container, so the editable Post Title
++// link needs a non-inline display **in the editor** (see
++// https://github.com/WordPress/gutenberg/pull/30666). This rule is editor-only:
++// on the front end the link stays inline so its text can wrap around floats and
++// `shape-outside` (see https://github.com/WordPress/gutenberg/issues/79372).
++.wp-block-post-title :where(a) {
++	display: inline-block;
++}
+diff --git a/packages/block-library/src/post-title/style.scss b/packages/block-library/src/post-title/style.scss
+index 8dfd25b..454d76b 100644
+--- a/packages/block-library/src/post-title/style.scss
++++ b/packages/block-library/src/post-title/style.scss
+@@ -4,7 +4,6 @@
+ 	box-sizing: border-box;
+ 
+ 	:where(a) {
+-		display: inline-block;
+ 		font-family: inherit;
+ 		font-size: inherit;
+ 		font-style: inherit;
