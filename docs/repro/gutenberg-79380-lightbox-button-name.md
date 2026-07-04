@@ -1,10 +1,17 @@
 # Gutenberg #79380 — lightbox trigger button has no accessible name without JavaScript
 
-**Status:** patch prepared, held in reserve. Issue filed, awaiting a maintainer
-signal before opening a PR.
+**Status:** SUPERSEDED — reserve patch retired, do not submit. On 2026-06-23 a
+maintainer (`talldan`) triaged the issue as a confirmed `[Type] Bug` / `[Block] Image`,
+and `thisismyurl` opened [WordPress/gutenberg#79440](https://github.com/WordPress/gutenberg/pull/79440)
+implementing this exact fix — a static `aria-label="Enlarge"` in
+`block_core_image_render_lightbox()`, matched to the `triggerButtonAriaLabel` default,
+plus a PHPUnit regression test. Our patch below is kept for provenance only; back
+#79440 rather than opening a duplicate PR. The theme-side fallback
+(`dirtbag_lightbox_trigger_label`, 0.1.12) stays until #79440 merges upstream.
 
 - Issue: <https://github.com/WordPress/gutenberg/issues/79380>
-- Patch: [`gutenberg-79380-lightbox-button-name.patch`](gutenberg-79380-lightbox-button-name.patch)
+- Upstream PR (supersedes this): <https://github.com/WordPress/gutenberg/pull/79440>
+- Patch (historical): [`gutenberg-79380-lightbox-button-name.patch`](gutenberg-79380-lightbox-button-name.patch)
 - Theme-side fallback already shipped: `functions.php` (`dirtbag_lightbox_trigger_label`, 0.1.12)
 
 ## The problem
@@ -66,7 +73,12 @@ public function test_lightbox_trigger_has_static_aria_label() {
 }
 ```
 
-## Turning this into a PR (when ready)
+## Turning this into a PR — no longer applicable
+
+The steps below are retained for the record. **Do not run them** — PR
+[#79440](https://github.com/WordPress/gutenberg/pull/79440) already lands this fix
+upstream, so applying this patch would produce a duplicate PR. If #79440 stalls or
+is closed without merging, revisit these steps.
 
 1. `git clone https://github.com/WordPress/gutenberg && cd gutenberg && npm ci`
 2. `git apply ../dirtbag/docs/repro/gutenberg-79380-lightbox-button-name.patch`
