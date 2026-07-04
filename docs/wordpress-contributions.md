@@ -28,13 +28,15 @@ historic Trac comment.
   promise the software cannot keep.
 - [WordPress/gutenberg#67711](https://github.com/WordPress/gutenberg/pull/67711):
   merged spelling, grammar, and clarity corrections in the DataViews package docs.
-- [WordPress/two-factor#859](https://github.com/WordPress/two-factor/pull/859):
-  moved the Two Factor plugin's rate-limit gate before provider preprocessing and
-  invalidated provider tokens when the delay fires. This superseded the narrower
+- [WordPress/two-factor#917](https://github.com/WordPress/two-factor/pull/917)
+  (open; rebased reopen of [#859](https://github.com/WordPress/two-factor/pull/859),
+  which was closed by accident on 2026-06-14): moves the Two Factor plugin's
+  rate-limit gate before provider preprocessing and invalidated provider tokens when
+  the delay fires. This superseded the narrower
   [#848](https://github.com/WordPress/two-factor/pull/848) fix for email resend.
 - [WordPress/two-factor#877](https://github.com/WordPress/two-factor/pull/877):
-  proposed failing closed when `random_bytes()` is unavailable during login nonce
-  generation, replacing a weak legacy fallback.
+  **merged 2026-06-29** — fails closed when `random_bytes()` is unavailable during
+  login nonce generation, replacing a weak legacy fallback.
 
 ### Interesting reports and design questions
 
@@ -47,7 +49,10 @@ historic Trac comment.
   name — its `aria-label` is supplied only at runtime by the Interactivity API
   (`data-wp-bind--aria-label`, restored in #78426), so it fails `button-name` with
   JavaScript off or before hydration. Dirtbag ships a static-`aria-label` fallback
-  (`functions.php`, 0.1.12) and proposes the same fix in core.
+  (`functions.php`, 0.1.12). A maintainer triaged the issue, and the same static-label
+  fix is now proposed upstream in
+  [WordPress/gutenberg#79440](https://github.com/WordPress/gutenberg/pull/79440)
+  (opened independently); Dirtbag backs that PR rather than filing a duplicate.
 - [WordPress/gutenberg#42345](https://github.com/WordPress/gutenberg/issues/42345):
   single quotes after bold text can be curled the wrong way on output. This is the
   `wptexturize()` / old core-text-filter problem described below.
@@ -84,9 +89,30 @@ historic Trac comment.
 - [WordPress/Documentation-Issue-Tracker#440](https://github.com/WordPress/Documentation-Issue-Tracker/issues/440):
   requested consistent naming for the Navigation Block and Submenu Navigation Child
   Blocks.
+- [WordPress/Documentation-Issue-Tracker#1817](https://github.com/WordPress/Documentation-Issue-Tracker/issues/1817):
+  contributed replacement content for the HelpHub "E-mail Address" / changing-the-admin-email
+  guide. **Merged and closed `[Status] Done` (2026-07-03)** — an editor applied the
+  content and refreshed the main screenshot.
 
 ### Other WordPress ecosystem items
 
+- [WordPress/wordpress-playground#3875](https://github.com/WordPress/wordpress-playground/issues/3875):
+  reported that `git:directory` package installs fail in the browser Playground with
+  `createHash is not a function` — the Node `isomorphic-git` path leaking into the
+  browser bundle after #3841. Dirtbag hit this building its theme-test blueprint and
+  worked around it by installing the theme ZIP through the CORS proxy instead
+  (repo #102 / #103). The report triggered a same-night fix: adamziel's first pass
+  [#3879](https://github.com/WordPress/wordpress-playground/pull/3879) (closed) was
+  consolidated into ashfame's
+  [#3882](https://github.com/WordPress/wordpress-playground/pull/3882) (open, the live
+  fix) — a shared Vite helper aliasing `isomorphic-git` to its browser ESM entry
+  across all browser-facing packages, plus a Playwright `git:directory` regression
+  test against a local Git fixture and a localhost CORS-proxy bypass. `Fixes #3875`.
+  Verified 2026-07-04: a `git:directory` `installTheme` of `dknauss/dirtbag` clones and
+  activates cleanly on the #3882 preview build (`playground.wordpress.net/?pr=3882`) —
+  no `createHash` error. The Dirtbag CORS-proxy ZIP workaround is retirable once #3882
+  merges and deploys to production; switch `blueprint-theme-test.json` back to
+  `git:directory` then.
 - [WordPress/agent-skills#32](https://github.com/WordPress/agent-skills/pull/32):
   added `studio` and `studio-xdebug` skills.
 - [WordPress/agent-skills#35](https://github.com/WordPress/agent-skills/pull/35):
