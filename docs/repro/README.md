@@ -16,8 +16,8 @@ Captured evidence lives in [`screenshots/`](screenshots/):
 - `current-wp-dirtbag-fix.png` / `current-wp-dirtbag-fix-axe.json`
 - `caption-repro-summary.json`
 
-Draft supporting comment for the live upstream Gallery issue:
-[`gutenberg-gallery-caption-accessibility-comment-draft.md`](gutenberg-gallery-caption-accessibility-comment-draft.md).
+A supporting comment for the live upstream Gallery issue is not yet drafted — the
+repro and axe evidence above are the raw material for it.
 
 ## Chrome float-in-grid below-the-fold repro
 
@@ -31,6 +31,13 @@ The reduction found the missing trigger: WordPress core styles Post Title links 
 beside the 60px float when the title is too wide, so it drops below the float. A
 float variant must override the title link back to `display: inline`; this is not a
 clean Chromium filing as currently reduced.
+
+Filed upstream as [WordPress/gutenberg#79372](https://github.com/WordPress/gutenberg/issues/79372)
+(maintainer-triaged `[Type] Bug`). A held core fix — make the `inline-block`
+editor-only so the front-end link wraps around floats — plus the archaeology behind
+it lives in
+[`gutenberg-79372-post-title-inline-float.md`](gutenberg-79372-post-title-inline-float.md)
+and [`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch).
 
 ## How to run it (this matters)
 
