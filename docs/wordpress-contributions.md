@@ -101,8 +101,14 @@ historic Trac comment.
   `createHash is not a function` — the Node `isomorphic-git` path leaking into the
   browser bundle after #3841. Dirtbag hit this building its theme-test blueprint and
   worked around it by installing the theme ZIP through the CORS proxy instead
-  (repo #102 / #103). Open; a contributor has proposed a browser-bundle regression
-  test (assert the resolved bundle does not import Node `crypto`).
+  (repo #102 / #103). The report triggered a same-night fix: adamziel's first pass
+  [#3879](https://github.com/WordPress/wordpress-playground/pull/3879) (closed) was
+  consolidated into ashfame's
+  [#3882](https://github.com/WordPress/wordpress-playground/pull/3882) (open, the live
+  fix) — a shared Vite helper aliasing `isomorphic-git` to its browser ESM entry
+  across all browser-facing packages, plus a Playwright `git:directory` regression
+  test against a local Git fixture and a localhost CORS-proxy bypass. `Fixes #3875`.
+  The Dirtbag CORS-proxy ZIP workaround is retirable once #3882 merges.
 - [WordPress/agent-skills#32](https://github.com/WordPress/agent-skills/pull/32):
   added `studio` and `studio-xdebug` skills.
 - [WordPress/agent-skills#35](https://github.com/WordPress/agent-skills/pull/35):
