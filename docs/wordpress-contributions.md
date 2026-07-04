@@ -89,9 +89,20 @@ historic Trac comment.
 - [WordPress/Documentation-Issue-Tracker#440](https://github.com/WordPress/Documentation-Issue-Tracker/issues/440):
   requested consistent naming for the Navigation Block and Submenu Navigation Child
   Blocks.
+- [WordPress/Documentation-Issue-Tracker#1817](https://github.com/WordPress/Documentation-Issue-Tracker/issues/1817):
+  contributed replacement content for the HelpHub "E-mail Address" / changing-the-admin-email
+  guide. **Merged and closed `[Status] Done` (2026-07-03)** — an editor applied the
+  content and refreshed the main screenshot.
 
 ### Other WordPress ecosystem items
 
+- [WordPress/wordpress-playground#3875](https://github.com/WordPress/wordpress-playground/issues/3875):
+  reported that `git:directory` package installs fail in the browser Playground with
+  `createHash is not a function` — the Node `isomorphic-git` path leaking into the
+  browser bundle after #3841. Dirtbag hit this building its theme-test blueprint and
+  worked around it by installing the theme ZIP through the CORS proxy instead
+  (repo #102 / #103). Open; a contributor has proposed a browser-bundle regression
+  test (assert the resolved bundle does not import Node `crypto`).
 - [WordPress/agent-skills#32](https://github.com/WordPress/agent-skills/pull/32):
   added `studio` and `studio-xdebug` skills.
 - [WordPress/agent-skills#35](https://github.com/WordPress/agent-skills/pull/35):
