@@ -108,7 +108,11 @@ historic Trac comment.
   fix) — a shared Vite helper aliasing `isomorphic-git` to its browser ESM entry
   across all browser-facing packages, plus a Playwright `git:directory` regression
   test against a local Git fixture and a localhost CORS-proxy bypass. `Fixes #3875`.
-  The Dirtbag CORS-proxy ZIP workaround is retirable once #3882 merges.
+  Verified 2026-07-04: a `git:directory` `installTheme` of `dknauss/dirtbag` clones and
+  activates cleanly on the #3882 preview build (`playground.wordpress.net/?pr=3882`) —
+  no `createHash` error. The Dirtbag CORS-proxy ZIP workaround is retirable once #3882
+  merges and deploys to production; switch `blueprint-theme-test.json` back to
+  `git:directory` then.
 - [WordPress/agent-skills#32](https://github.com/WordPress/agent-skills/pull/32):
   added `studio` and `studio-xdebug` skills.
 - [WordPress/agent-skills#35](https://github.com/WordPress/agent-skills/pull/35):
