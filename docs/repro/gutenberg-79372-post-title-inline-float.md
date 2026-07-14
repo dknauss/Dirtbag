@@ -1,11 +1,15 @@
 # Gutenberg #79372 — Post Title link is `inline-block`, breaking float / `shape-outside` wrapping
 
-**Status:** reserve fix prepared, held. Issue is filed and a maintainer has triaged
-it as a confirmed bug; no core PR yet. Open the PR (or, first, post the archaeology
-below as a comment) when ready.
+**Status:** PR open — [WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231)
+(opened 2026-07-14). The archaeology comment was posted 2026-07-04; a contributor
+confirmed the editor-scoping direction on 2026-07-09 and invited the PR. The patch
+below is what was submitted. Reserve/local fallback (theme-side float variant) stays
+in place until the PR merges.
 
 - Issue: <https://github.com/WordPress/gutenberg/issues/79372> — triaged `[Type] Bug`
-  / `[Block] Post Title`, otherwise idle since 2026-06-22.
+  / `[Block] Post Title`, filed 2026-06-22.
+- PR: <https://github.com/WordPress/gutenberg/pull/80231> — branch
+  `fix/post-title-link-inline-block-float` on `dknauss/gutenberg`.
 - Patch: [`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch)
 - Filed issue text (source of record): [`gutenberg-issue-draft.md`](gutenberg-issue-draft.md)
 - Repro: [`chrome-float-repro.html`](chrome-float-repro.html) and

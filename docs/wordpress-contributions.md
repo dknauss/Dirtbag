@@ -44,6 +44,11 @@ historic Trac comment.
   Post Title block links are `display: inline-block`, which makes the whole title
   an atomic inline-level box. In narrow float / `shape-outside` layouts, the title
   can drop below a floated thumbnail instead of wrapping beside and under it.
+  After the archaeology comment confirmed the `inline-block` is editor-only (from
+  #30666), a contributor invited a PR;
+  [WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231)
+  is **open** (2026-07-14) — moves `display: inline-block` into an editor-only
+  `post-title/editor.scss` so the front-end link wraps around floats.
 - [WordPress/gutenberg#79380](https://github.com/WordPress/gutenberg/issues/79380):
   the image lightbox trigger button is server-rendered with no static accessible
   name — its `aria-label` is supplied only at runtime by the Interactivity API
