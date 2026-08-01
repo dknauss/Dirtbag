@@ -33,6 +33,17 @@ for p in json_files:
     json.loads(p.read_text())
 print('JSON OK')
 
+# A variation's background feeds the color-scheme/theme-color meta tags
+# (dirtbag_head_color_meta). That derivation only accepts a literal hex colour
+# and fails closed otherwise, so a variation authored with rgb()/a named colour
+# /an unresolved var() would silently drop both tags. Require the literal form.
+hex_re = re.compile(r'^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$')
+for p in sorted(Path('styles').glob('*.json')):
+    bg = json.loads(p.read_text()).get('styles', {}).get('color', {}).get('background')
+    if bg is not None and not hex_re.match(bg):
+        raise SystemExit(f'{p}: styles.color.background must be a literal hex colour, got {bg!r}')
+print('Style variation backgrounds OK')
+
 # Screenshot dimensions without Pillow.
 with open('screenshot.png', 'rb') as f:
     sig = f.read(8)
@@ -71,7 +82,7 @@ for p in root.rglob('*'):
         continue
     rel = p.as_posix()
     name = p.name
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.is_file():
         if name in {'.DS_Store', 'Thumbs.db', 'desktop.ini', 'error_log', 'php.ini', 'web.config', 'favicon.ico'}:
@@ -221,12 +232,12 @@ print('Image inventory OK')
 
 # No bundled frontend assets except required style.css and local images/SVGs.
 for p in root.rglob('*'):
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.is_file() and p.suffix in {'.js', '.woff', '.woff2', '.ttf', '.otf'}:
         raise SystemExit(f'Unexpected bundled frontend asset: {p}')
 for p in root.rglob('*.css'):
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.as_posix() != 'style.css':
         raise SystemExit(f'Unexpected CSS file: {p}')
@@ -247,4 +258,12 @@ for file in functions.php patterns/*.php playground/*.php; do
 done
 
 echo "PHP syntax OK"
+
+# Unit tests for the theme's one island of pure logic. Dependency-free, so it
+# runs in the same gate rather than needing the Playwright harness. Skipped when
+# tests/ is absent — it is export-ignored, so the release zip has no copy.
+if [[ -f tests/php/color-scheme-test.php ]]; then
+  php tests/php/color-scheme-test.php
+fi
+
 echo "All package checks passed."
