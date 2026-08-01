@@ -252,8 +252,12 @@ domain_arg = {
 call_re = re.compile(r'(?<![A-Za-z0-9_$])(' + '|'.join(sorted(domain_arg, key=len, reverse=True)) + r')\s*\(')
 str_re = re.compile(r"""\A'((?:[^'\\]|\\.)*)'\Z|\A"((?:[^"\\]|\\.)*)"\Z""", re.S)
 # Only PHP islands are PHP. Pattern files are mostly HTML, where '//' in a URL
-# and '#' in a hex colour are not comments. <?= is a translation site too.
-island_re = re.compile(r'<\?(?:php\b|=)(.*?)(?:\?>|\Z)', re.S)
+# and '#' in a hex colour are not comments. <?= is a translation site too, and
+# PHP reads opening tags case-insensitively.
+open_tag_re = re.compile(r'<\?(?:php\b|=)', re.I)
+# A declaration is not a call, and a namespaced helper that merely shares a name
+# (\Dirtbag\translate) is not the WordPress function.
+decl_re = re.compile(r'\bfunction\s*$')
 
 def _mask(src, strings=True):
     """Blank comments — and, by default, string interiors — preserving length so
@@ -333,17 +337,32 @@ def _args(src, open_paren):
         i += 1
     return None
 
+def _islands(text):
+    """(body, absolute offset) for each PHP island. The closing tag is located in
+    masked text, so a '?>' inside a string or comment does not end the island
+    early — PHP does not treat those as closing tags either."""
+    found, pos = [], 0
+    while True:
+        m = open_tag_re.search(text, pos)
+        if not m:
+            return found
+        rest = text[m.end():]
+        close = re.search(r'\?>', _mask(rest))
+        found.append((rest[:close.start()] if close else rest, m.end()))
+        pos = m.end() + (close.end() if close else len(rest))
+
 def i18n_violations(text):
     """Return (line, call source, reason) for each bad text domain in `text`."""
     hits = []
-    for island in island_re.finditer(text):
-        src, base = island.group(1), island.start(1)
+    for src, base in _islands(text):
         masked = _mask(src)                  # find call names
         code = _mask(src, strings=False)     # parse arguments
         for m in call_re.finditer(masked):
             before = code[:m.start()].rstrip()
-            if before.endswith('->') or before.endswith('::'):
-                continue  # method call that merely shares the name
+            if before.endswith(('->', '::', '\\')):
+                continue  # method, or a namespaced function sharing the name
+            if decl_re.search(before):
+                continue  # a declaration, not a call
             parsed = _args(code, m.end() - 1)
             if parsed is None:
                 continue
@@ -373,7 +392,10 @@ for _src in ["<?php __( 'x', 'wrong' );", "<?php __( 'x' );", '<?php __( "x", "w
              "<?php translate( 'x', 'wrong' );",
              "<?php translate_with_gettext_context( 'x', 'ctx', 'wrong' );",
              "<?php translate_nooped_plural( $noop, 2, 'wrong' );",
-             "<?php _n( 'a', 'b', $n, /* why */ 'wrong' );"]:
+             "<?php _n( 'a', 'b', $n, /* why */ 'wrong' );",
+             "<?PHP __( 'x', 'wrong' );", "<?Php _x( 'x', 'ctx', 'wrong' );",
+             "<?php $s = '?>'; __( 'x', 'wrong' );",
+             "<?php /* ?> */ __( 'x', 'wrong' );"]:
     if not i18n_violations(_src):
         raise SystemExit(f'i18n self-test: matcher failed to flag {_src!r}')
 for _src in ["<?php __( 'x', 'dirtbag' );", '<?php __( "x", "dirtbag" );',
@@ -389,7 +411,11 @@ for _src in ["<?php __( 'x', 'dirtbag' );", '<?php __( "x", "dirtbag" );',
              "<?php translate_with_gettext_context( 'x', 'ctx', 'dirtbag' );",
              "<?php _n( 'a', 'b', $n, /* item count */ 'dirtbag' );",
              "<?php _n( 'a', 'b', $n, // item count\n 'dirtbag' );",
-             "<?php _x( 'x', /* ctx */ 'ctx', 'dirtbag' );"]:
+             "<?php _x( 'x', /* ctx */ 'ctx', 'dirtbag' );",
+             "<?php namespace Dirtbag; function translate( $value, $locale ) { return $value; }",
+             "<?php function __( $text, $domain ) {}",
+             "<?php echo \\Dirtbag\\translate( $value, $locale );",
+             "<?php $html = '?> not a close'; __( 'x', 'dirtbag' );"]:
     _hits = i18n_violations(_src)
     if _hits:
         raise SystemExit(f'i18n self-test: matcher wrongly flagged {_src!r} ({_hits[0][2]})')
