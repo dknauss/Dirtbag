@@ -17,6 +17,37 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'dirtbag_global_styles_fail' ) ) {
+	/**
+	 * Abort loudly.
+	 *
+	 * Callers need the failure to be fatal, and a plain `exit( 1 )` is not:
+	 *
+	 * - Under a Playground `runPHP` step there is no console. STDOUT and STDERR
+	 *   are swallowed and a non-zero exit does not fail the boot, so an
+	 *   `exit( 1 )` here would let the per-style sweep run happily against an
+	 *   unapplied variation — exactly the bug these guards exist to catch. An
+	 *   uncaught exception *does* fail the step ("PHP.run() failed with exit
+	 *   code 255") and therefore the boot.
+	 * - Under `wp eval-file` the uncaught exception is a fatal, so WP-CLI exits
+	 *   non-zero and tests/axe-styles.sh sees the failed `apply`.
+	 *
+	 * STDERR is a CLI-SAPI constant and is undefined under Playground, so guard
+	 * the write rather than fataling on the diagnostic itself and losing the
+	 * message.
+	 *
+	 * @param string $label   Calling script name, for error output.
+	 * @param string $message Human-readable failure reason.
+	 * @throws RuntimeException Always.
+	 */
+	function dirtbag_global_styles_fail( $label, $message ) {
+		if ( defined( 'STDERR' ) ) {
+			fwrite( STDERR, "{$label}: {$message}\n" );
+		}
+		throw new RuntimeException( "{$label}: {$message}" );
+	}
+}
+
 if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 	/**
 	 * Bind a global-styles post to the active theme.
@@ -37,7 +68,8 @@ if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 	 *
 	 * @param int    $post_id Global styles post ID.
 	 * @param string $label   Calling script name, for error output.
-	 * @return void Exits with status 1 on failure.
+	 * @return void
+	 * @throws RuntimeException When the term cannot be attached.
 	 */
 	function dirtbag_link_global_styles_post_to_theme( $post_id, $label ) {
 		$stylesheet = wp_get_theme()->get_stylesheet();
@@ -45,8 +77,7 @@ if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 		if ( is_wp_error( $terms ) || ! in_array( $stylesheet, $terms, true ) ) {
 			$tagged = wp_set_object_terms( $post_id, $stylesheet, 'wp_theme' );
 			if ( is_wp_error( $tagged ) ) {
-				fwrite( STDERR, "{$label}: could not link post {$post_id} to theme '{$stylesheet}': " . $tagged->get_error_message() . "\n" );
-				exit( 1 );
+				dirtbag_global_styles_fail( $label, "could not link post {$post_id} to theme '{$stylesheet}': " . $tagged->get_error_message() );
 			}
 		}
 	}
@@ -67,7 +98,8 @@ if ( ! function_exists( 'dirtbag_assert_global_styles_post_is_live' ) ) {
 	 *
 	 * @param int    $post_id Global styles post ID the caller wrote.
 	 * @param string $label   Calling script name, for error output.
-	 * @return void Exits with status 1 when the front end reads a different post.
+	 * @return void
+	 * @throws RuntimeException When the front end reads a different post.
 	 */
 	function dirtbag_assert_global_styles_post_is_live( $post_id, $label ) {
 		$stylesheet = wp_get_theme()->get_stylesheet();
@@ -75,9 +107,10 @@ if ( ! function_exists( 'dirtbag_assert_global_styles_post_is_live' ) ) {
 		$live_id    = isset( $live['ID'] ) ? (int) $live['ID'] : 0;
 		if ( $live_id !== (int) $post_id ) {
 			$reads = $live_id ? "post {$live_id}" : 'no post';
-			fwrite( STDERR, "{$label}: wrote post {$post_id}, but the front end reads {$reads} for theme '{$stylesheet}'\n" );
-			fwrite( STDERR, "{$label}: what was written would not render — refusing to report success\n" );
-			exit( 1 );
+			dirtbag_global_styles_fail(
+				$label,
+				"wrote post {$post_id}, but the front end reads {$reads} for theme '{$stylesheet}' — what was written would not render"
+			);
 		}
 	}
 }

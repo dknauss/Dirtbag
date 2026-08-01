@@ -51,8 +51,10 @@ Detect what the session can do and pick the lowest tier (the Dirtbag layer under
 1. **Headless-scriptable (default)** — run the `tests/` harness from the CLI; no handoff:
    - per-style a11y / axe: `cd tests && ./axe-styles.sh` (or `npm run test:styles`)
    - truck-icon filter per style: `tests/styles/truck-icon.spec.js`
+   - per-style `<head>` colour metadata: `tests/styles/head-meta.spec.js`
    - in-session A→B→A style-sticking guard: `tests/styles/sticking.spec.js` — **mutates the live site**; run it *outside* the per-style sweep (it shares the global-styles post)
    - per-style front-page screenshots → `tests/screenshots/<slug>.png`: `tests/styles/screenshots.spec.js`
+   - "is the variation actually live?": `node tests/assert-style-applied.mjs` with `DIRTBAG_STYLE` — run this first when a per-style result looks suspiciously like the default
 
    The command sandbox blocks `localhost`; run unsandboxed or via a browser MCP.
 2. **In-session browser MCP** — interactive navigation / clicks / form-fill / screenshots that need `localhost`.

@@ -124,7 +124,8 @@ fails the suite): `image-alt`, `link-name`, `label`, `heading-order`,
 `landmark-unique`, `region`, `color-contrast`, and `button-name`, enforced in
 `accessibility.spec.js` across the seeded pages plus a single post and the 404
 template; `color-contrast` is additionally gated across every style by the per-style
-sweep below. The scan runs `wcag2a`, `wcag2aa`, **and `best-practice`** tags —
+sweep below — a claim that was **vacuous in CI until the apply bug described there
+was fixed**. The scan runs `wcag2a`, `wcag2aa`, **and `best-practice`** tags —
 `heading-order`, `landmark-unique`, and `region` are best-practice rules, so without
 that tag they would not be evaluated and gating them would be a silent no-op. Other
 axe findings stay report-only until likewise confirmed clean; track the gated set
@@ -174,6 +175,53 @@ Because they mutate global styles directly rather than through `axe-styles.sh`, 
 carry their own copy of its checkout guard: `assertThemeCheckout()` before the first
 write, and again before the `afterAll` restore, so an abort against a foreign
 checkout cannot write to somebody else's site on the way out.
+
+**The CI matrix scanned the default style seven times** *(fixed)* — worth recording,
+because the failure was invisible by construction. `playground/apply-style.php` resolved
+its target through `WP_Theme_JSON_Resolver::get_user_global_styles_post_id()`, which
+creates the `wp_global_styles` post via `wp_insert_post()` with the theme's `wp_theme`
+term in `tax_input`. `wp_insert_post()` silently drops `tax_input` unless the current
+user can assign the taxonomy's terms — and a Playground `runPHP` boot step has no user
+at all. The post was created without its term, the helper still returned its ID, the
+write succeeded, and every reader (including the front end) then filtered on that
+missing term, found nothing, and fell back to theme.json. A Playground `runPHP` step
+swallows STDOUT, STDERR and the exit code, so nothing surfaced. Every leg of the matrix
+rendered `default` while reporting per-style coverage, which made this document's claim
+that `color-contrast` was "gated across every style" in CI vacuous for as long as it
+stood.
+
+A second, independent bug was hiding behind the first. Core registers
+`wp_filter_global_styles_post()` on `content_save_pre` for anyone who cannot
+`unfiltered_html` — which a Playground boot step and a plain `wp eval-file` both are.
+That filter runs the payload through `WP_Theme_JSON::remove_insecure_properties()`,
+whose settings pass keeps only presets and typed `VALID_SETTINGS` entries, so the
+free-form `settings.custom` tree was stripped *before it reached the database*.
+`styles` survived, `settings` did not — which is why the background applied while
+`settings.custom.dirtbag.truckIconFilter` stayed at theme.json's `none`, and why
+`truck-icon.spec.js` carried a CI skip blaming Playground for "not re-emitting" it.
+`apply-style.php` now drops that one filter for its own write and restores it
+immediately: the payload is the theme's own `styles/<slug>.json`, and the file never
+ships.
+
+Four things now prevent a silent repeat:
+
+1. `apply-style.php` attaches the `wp_theme` term itself (`wp_set_object_terms()` has no
+   capability gate, and the shared `global-styles-post.php` does this for both appliers),
+   then **verifies its own write** — WordPress must resolve back to the post it wrote, and
+   both the merged background *and* the merged `truckIconFilter` must match the variation.
+   It aborts by throwing, because that is the only failure mode a `runPHP` step actually
+   propagates: STDOUT, STDERR and the exit code are all swallowed there, and `STDERR` is a
+   CLI-SAPI constant that is not even defined.
+2. `tests/assert-style-applied.mjs` checks the *rendered* page — the one thing that cannot
+   lie about which variation is live — against both layers: `styles.color.background` and
+   the `--wp--custom--dirtbag--truck-icon-filter` custom property. They reach the front end
+   by different routes and have failed independently, so one passing does not imply the
+   other. It is both part of the CI boot readiness check (so a bad boot retries) and a
+   standalone gate before the sweep runs.
+3. The blueprint now applies on every slug including `default`, so all seven matrix legs
+   exercise the same path and a failed apply is never mistaken for a correct default.
+4. `head-meta.spec.js` and `truck-icon.spec.js` no longer skip in CI. Both were skipped for
+   diagnoses that turned out to be wrong; between them they assert each layer per style.
 
 **Viewports** — run the keyboard/overlay specs at a mobile width (360×640) and a
 desktop width; add small-viewport screenshot review (240×320, 320×240, 360×640) to

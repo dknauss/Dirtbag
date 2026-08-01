@@ -133,6 +133,8 @@ jobs:
   # style variation. Playground is in-memory with no persistent wp-cli, so each
   # style gets its own boot: the blueprint applies the variation at boot via
   # playground/apply-style.php (locally this is the tests/axe-styles.sh loop).
+  # The apply is verified against rendered output before the sweep runs — see
+  # the "Assert the requested style is actually applied" step below.
   e2e-styles:
     runs-on: ubuntu-latest
     strategy:
@@ -161,6 +163,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Boot WordPress Playground (theme + seed + style)
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
         run: |
           # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
           # connection-refused boot crash (WordPress/wordpress-playground#3830,
@@ -190,21 +195,31 @@ jobs:
             # bare 200 can precede the seed import) AND the seeded author's
             # nicename survived: a flaky boot can empty user identity fields,
             # which later fails the axe link-name gate as a nameless author
-            # link. Bail early if the server died.
+            # link — AND the requested style variation actually rendered. Bail
+            # early if the server died.
             #
             # Record each condition separately. Collapsed into one `if`, a
             # timeout could not say whether the theme never installed (a
             # git:directory fetch problem) or installed but never seeded (a
             # runPHP/worker problem) — the two have different fixes.
+            #
+            # "Style applied" is a readiness condition, not merely a gate. Twelve
+            # of thirteen local boots applied cleanly, but one came up seeded with
+            # the variation missing from the rendered page even though the apply
+            # step had verified itself in-process — so treat it the way this loop
+            # already treats a half-finished seed, and retry. Without it the sweep
+            # would run against the default style and pass, which is how the
+            # matrix silently scanned `default` seven times.
             : > /tmp/pg.probe
             for i in $(seq 1 60); do
-              theme_ok=no; image_ok=no; author_ok=no
+              theme_ok=no; image_ok=no; author_ok=no; style_ok=no
               if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
               if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then image_ok=yes; fi
               if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
-              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s\n' \
-                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" > /tmp/pg.probe
-              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ]; then return 0; fi
+              if node tests/assert-style-applied.mjs >/dev/null 2>&1; then style_ok=yes; fi
+              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s style-applied=%s\n' \
+                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$style_ok" > /tmp/pg.probe
+              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$style_ok" = yes ]; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -218,14 +233,28 @@ jobs:
             echo "--- diagnostics for attempt $attempt ---" >&2
             echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
             echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
+            echo "--- why the style assertion failed ---" >&2
+            node tests/assert-style-applied.mjs >&2 2>&1 || true
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename + '${DIRTBAG_STYLE}' applied) after 3 attempts; aborting so the suite does not run against a mis-seeded or wrong-style site."
           exit 1
+
+      # Gate the sweep on the variation having actually rendered. A Playground
+      # `runPHP` step swallows STDOUT, STDERR and the exit code, so for a long
+      # while every leg of this matrix scanned the *default* style and reported
+      # per-style coverage. Rendered output is the only thing that cannot lie
+      # about which variation is live, so check it before the suite runs — a
+      # failure here means the boot, not the theme, is broken.
+      - name: Assert the requested style is actually applied
+        run: node tests/assert-style-applied.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
 
       - name: Run per-style axe sweep
         working-directory: tests
