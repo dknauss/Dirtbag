@@ -6,6 +6,17 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+### Added
+
+* Emit `color-scheme` and `theme-color` meta tags derived from the active style variation's background colour. WordPress core emits neither; without `color-scheme`, form controls and scrollbars render as light user-agent widgets on the dark variations (Terminal, Amber CRT, Blueprint). Derived from the resolved global styles rather than a variation slug, so the tags follow the site owner's own Site Editor customisations. The default Brutalist style declares no background and deliberately gets neither tag.
+* `docs/head-metadata.md` — who emits what in `<head>`: what core already provides a block theme, the two tags Dirtbag adds, and why meta description, Open Graph, and JSON-LD deliberately need a plugin.
+* Unit tests for the colour-scheme derivation (`tests/php/color-scheme-test.php`, dependency-free plain PHP, run by `bin/package-check`) and a per-style browser spec (`tests/styles/head-meta.spec.js`).
+* `bin/package-check` now requires `styles.color.background` in each style variation to be a literal hex colour, since a non-hex value would silently drop both meta tags.
+
+### Fixed
+
+* Repointed the WordPress Studio theme symlink, which referenced a stale path (`Developer/GitHub/dirtbag` rather than `Developer/GitHub/dknauss/dirtbag`). The per-style Playwright sweep had been running against whatever theme was active instead of Dirtbag.
+
 ## [0.1.17] - 2026-07-03
 
 ### Added
