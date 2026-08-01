@@ -69,21 +69,36 @@ resolve_theme_paths() {
     | head -1
 }
 
-assert_theme_checkout() {
-  local when="$1" payload template stylesheet
+# Resolve and classify, without exiting: 0 = the expected checkout, 1 = a
+# demonstrably different one, 2 = cannot be determined. Callers decide what to
+# do, which lets `restore` consult it as a predicate rather than trusting a
+# flag cached earlier in the run.
+theme_checkout_state() {
+  local payload
   payload="$(resolve_theme_paths)"
+  [ -z "$payload" ] && return 2
 
-  if [ -z "$payload" ]; then
+  last_template="$(normalize_theme_path "${payload%%|*}")"
+  last_stylesheet="$(normalize_theme_path "${payload##*|}")"
+
+  if [ "$last_template" = "$EXPECTED_THEME_PATH" ] && [ "$last_stylesheet" = "$EXPECTED_THEME_PATH" ]; then
+    return 0
+  fi
+  return 1
+}
+
+assert_theme_checkout() {
+  local when="$1" state
+  theme_checkout_state
+  state=$?
+
+  if [ "$state" -eq 0 ]; then
+    return 0
+  fi
+  if [ "$state" -eq 2 ]; then
     # Can't determine it — warn rather than invent a failure, since other
     # environments may not support this eval.
     echo "warning ($when): could not resolve the active theme directory" >&2
-    return 0
-  fi
-
-  template="$(normalize_theme_path "${payload%%|*}")"
-  stylesheet="$(normalize_theme_path "${payload##*|}")"
-
-  if [ "$template" = "$EXPECTED_THEME_PATH" ] && [ "$stylesheet" = "$EXPECTED_THEME_PATH" ]; then
     return 0
   fi
 
@@ -92,8 +107,8 @@ assert_theme_checkout() {
   checkout_is_foreign=1
 
   echo "FAILED ($when): the site's active theme is not the expected checkout." >&2
-  echo "  template:   $template" >&2
-  echo "  stylesheet: $stylesheet" >&2
+  echo "  template:   $last_template" >&2
+  echo "  stylesheet: $last_stylesheet" >&2
   echo "  expected:   $EXPECTED_THEME_PATH" >&2
   echo "Another session has likely repointed the Studio theme symlink, or a child" >&2
   echo "theme is active. Repoint it, restart the site (Studio caches the" >&2
@@ -116,6 +131,19 @@ restore() {
     echo "== skipping restore: the site is serving a different checkout ==" >&2
     return
   fi
+
+  # Re-resolve rather than trusting the flag. The trap fires on any exit —
+  # including an interrupt part-way through a Playwright run — so the last
+  # assertion may be arbitrarily stale by now, and this writes global styles.
+  # An unresolvable check still restores: that is the pre-existing behaviour in
+  # environments without this eval, and leaving the site on a non-default
+  # variation would be its own bug.
+  theme_checkout_state
+  if [ $? -eq 1 ]; then
+    echo "== skipping restore: the site is serving a different checkout ==" >&2
+    return
+  fi
+
   echo "== restoring default global styles =="
   apply default
 }
