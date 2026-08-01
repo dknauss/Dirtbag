@@ -107,6 +107,11 @@ jobs:
             echo "--- diagnostics for attempt $attempt ---" >&2
             echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
             echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
+            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
+            # into the response body — so capture the body, not just the status.
+            # `curl -f` suppresses output on a 5xx, so this one must omit it.
+            echo "--- response body (first 60 lines) ---" >&2
+            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
@@ -218,6 +223,11 @@ jobs:
             echo "--- diagnostics for attempt $attempt ---" >&2
             echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
             echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
+            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
+            # into the response body — so capture the body, not just the status.
+            # `curl -f` suppresses output on a 5xx, so this one must omit it.
+            echo "--- response body (first 60 lines) ---" >&2
+            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
