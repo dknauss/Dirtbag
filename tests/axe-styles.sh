@@ -135,14 +135,24 @@ restore() {
   # Re-resolve rather than trusting the flag. The trap fires on any exit —
   # including an interrupt part-way through a Playwright run — so the last
   # assertion may be arbitrarily stale by now, and this writes global styles.
-  # An unresolvable check still restores: that is the pre-existing behaviour in
-  # environments without this eval, and leaving the site on a non-default
-  # variation would be its own bug.
+  #
+  # Restore only on a positive match. An undeterminable result is not evidence
+  # of safety: a transient probe failure (Studio restarting after another
+  # session repointed it, say) would otherwise be followed by an `apply default`
+  # in a fresh WP-CLI process that succeeds against the foreign checkout —
+  # precisely the mutation this guard exists to prevent. Set
+  # DIRTBAG_RESTORE_WITHOUT_PROBE=1 in environments that cannot run the probe
+  # and still want the site returned to the default variation.
   theme_checkout_state
-  if [ $? -eq 1 ]; then
-    echo "== skipping restore: the site is serving a different checkout ==" >&2
-    return
-  fi
+  case $?:${DIRTBAG_RESTORE_WITHOUT_PROBE:-0} in
+    0:*) ;;
+    2:1) echo "== restoring without a checkout probe (opted in) ==" >&2 ;;
+    *)
+      echo "== skipping restore: could not confirm the site is this checkout ==" >&2
+      echo "   (set DIRTBAG_RESTORE_WITHOUT_PROBE=1 to restore anyway)" >&2
+      return
+      ;;
+  esac
 
   echo "== restoring default global styles =="
   apply default
