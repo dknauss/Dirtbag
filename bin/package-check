@@ -232,12 +232,157 @@ for p in root.rglob('*.css'):
         raise SystemExit(f'Unexpected CSS file: {p}')
 print('Asset scan OK')
 
-# i18n: pattern translation calls must use the 'dirtbag' text domain.
-trans_re = re.compile(r"(?<![A-Za-z0-9_])(esc_html_e|esc_attr_e|esc_html__|esc_attr__|_e|__)\(\s*'(?:[^'\\]|\\.)*'\s*(?:,\s*'([^']*)')?\s*\)")
-for p in Path('patterns').glob('*.php'):
-    for m in trans_re.finditer(p.read_text()):
-        if m.group(2) != 'dirtbag':
-            raise SystemExit(f"i18n: {p}: text domain must be 'dirtbag' in {m.group(0)!r}")
+# i18n: translation calls in theme PHP must use the 'dirtbag' text domain.
+# Covers every PHP file the theme ships (functions.php, patterns/) plus the
+# export-ignored Playground seeder, whose demo content is still user-facing.
+#
+# The domain is always the LAST argument, but which position that is varies by
+# function, and _n()'s count argument is not a string literal. So: find the call
+# name, then split its arguments at paren depth 0 — one regex per shape rots.
+# Index of the text-domain argument, 0-based, per WordPress signature.
+domain_arg = {
+    '__': 1, '_e': 1,
+    'esc_html__': 1, 'esc_html_e': 1, 'esc_attr__': 1, 'esc_attr_e': 1, 'esc_xml__': 1, 'esc_xml_e': 1,
+    '_x': 2, '_ex': 2, 'esc_html_x': 2, 'esc_attr_x': 2, 'esc_xml_x': 2, '_n_noop': 2,
+    '_n': 3, '_nx_noop': 3,
+    '_nx': 4,
+}
+# Longest name first so _n cannot shadow _n_noop.
+call_re = re.compile(r'(?<![A-Za-z0-9_$])(' + '|'.join(sorted(domain_arg, key=len, reverse=True)) + r')\s*\(')
+str_re = re.compile(r"""\A'((?:[^'\\]|\\.)*)'\Z|\A"((?:[^"\\]|\\.)*)"\Z""", re.S)
+# Only <?php ... ?> islands are PHP. Pattern files are mostly HTML, where '//'
+# in a URL and '#' in a hex colour are not comments.
+island_re = re.compile(r'<\?php\b(.*?)(?:\?>|\Z)', re.S)
+
+def _mask(src):
+    """Blank comments and string interiors, preserving length so offsets still
+    line up with the original. Lets us find call names without matching prose."""
+    out, i, n = list(src), 0, len(src)
+    while i < n:
+        ch = src[i]
+        if ch in '\'"':
+            i += 1
+            while i < n:
+                if src[i] == '\\':
+                    out[i] = ' '
+                    if i + 1 < n:
+                        out[i + 1] = ' '
+                    i += 2
+                    continue
+                if src[i] == ch:
+                    i += 1
+                    break
+                out[i] = ' '
+                i += 1
+            continue
+        if src.startswith('/*', i):
+            end = src.find('*/', i + 2)
+            end = n if end == -1 else end + 2
+        elif src.startswith('//', i) or ch == '#':
+            end = src.find('\n', i)
+            end = n if end == -1 else end
+        else:
+            i += 1
+            continue
+        for j in range(i, end):
+            if out[j] != '\n':
+                out[j] = ' '
+        i = end
+    return ''.join(out)
+
+def _args(src, open_paren):
+    """(arguments, offset just past the closing paren) for the call whose '(' is
+    at open_paren, or None if unterminated. Respects nesting and quotes."""
+    args, buf, depth, i, n = [], [], 0, open_paren, len(src)
+    while i < n:
+        ch = src[i]
+        if ch in '\'"':
+            buf.append(ch)
+            i += 1
+            while i < n:
+                if src[i] == '\\':
+                    buf.append(src[i:i + 2])
+                    i += 2
+                    continue
+                buf.append(src[i])
+                if src[i] == ch:
+                    i += 1
+                    break
+                i += 1
+            continue
+        if ch in '([{':
+            depth += 1
+            if not (depth == 1 and ch == '('):
+                buf.append(ch)
+        elif ch in ')]}':
+            depth -= 1
+            if depth == 0:
+                args.append(''.join(buf).strip())
+                return ([] if args == [''] else args), i + 1
+            buf.append(ch)
+        elif ch == ',' and depth == 1:
+            args.append(''.join(buf).strip())
+            buf = []
+        else:
+            buf.append(ch)
+        i += 1
+    return None
+
+def i18n_violations(text):
+    """Return (line, call source, reason) for each bad text domain in `text`."""
+    hits = []
+    for island in island_re.finditer(text):
+        src, base = island.group(1), island.start(1)
+        masked = _mask(src)
+        for m in call_re.finditer(masked):
+            before = src[:m.start()].rstrip()
+            if before.endswith('->') or before.endswith('::'):
+                continue  # method call that merely shares the name
+            parsed = _args(src, m.end() - 1)
+            if parsed is None:
+                continue
+            args, end = parsed
+            idx = domain_arg[m.group(1)]
+            line = text.count('\n', 0, base + m.start()) + 1
+            call = ' '.join(src[m.start():end].split())
+            if len(args) <= idx:
+                hits.append((line, call, 'text domain argument is missing'))
+                continue
+            literal = str_re.match(args[idx])
+            if not literal:
+                hits.append((line, call, f'text domain must be a literal string, got {args[idx]!r}'))
+            elif (literal.group(1) or literal.group(2)) != 'dirtbag':
+                hits.append((line, call, f"text domain must be 'dirtbag', got {args[idx]!r}"))
+    return hits
+
+# Self-test: pins the matcher so it cannot silently stop catching things.
+for _src in ["<?php __( 'x', 'wrong' );", "<?php __( 'x' );", '<?php __( "x", "wrong" );',
+             "<?php _e( 'x', 'wrong' );", "<?php esc_html__( 'x', 'wrong' );",
+             "<?php _x( 'x', 'ctx', 'wrong' );", "<?php _x( 'x', 'ctx' );",
+             "<?php esc_html_x( 'x', 'ctx', 'wrong' );", "<?php _ex( 'x', 'ctx', 'wrong' );",
+             "<?php _n( 'a', 'b', $n, 'wrong' );", "<?php _n( 'a', 'b', $n );",
+             "<?php _nx( 'a', 'b', $n, 'ctx', 'wrong' );", "<?php _n_noop( 'a', 'b' );",
+             "<?php __( 'x', DIRTBAG );", "<?php echo sprintf( __( 'x %s', 'wrong' ), $y );"]:
+    if not i18n_violations(_src):
+        raise SystemExit(f'i18n self-test: matcher failed to flag {_src!r}')
+for _src in ["<?php __( 'x', 'dirtbag' );", '<?php __( "x", "dirtbag" );',
+             "<?php _x( 'x', 'ctx', 'dirtbag' );", "<?php _n( 'a', 'b', $n, 'dirtbag' );",
+             "<?php _nx( 'a', 'b', $n, 'ctx', 'dirtbag' );", "<?php _n_noop( 'a', 'b', 'dirtbag' );",
+             "<?php echo sprintf( __( 'x %s', 'dirtbag' ), $y );",
+             "<?php __( 'it\\'s', 'dirtbag' );",
+             "<?php $s = 'mentions _x( foo ) in a string'; // and _e( 'x', 'wrong' ) in a comment",
+             "<?php /* _e( 'x', 'wrong' ) */ my__( 'x', 'wrong' ); $o->__( 'x', 'wrong' );",
+             "<a href='https://example.com/'>not php</a>"]:
+    _hits = i18n_violations(_src)
+    if _hits:
+        raise SystemExit(f'i18n self-test: matcher wrongly flagged {_src!r} ({_hits[0][2]})')
+
+php_files = [Path('functions.php'), *sorted(Path('patterns').glob('*.php')), *sorted(Path('playground').glob('*.php'))]
+for p in php_files:
+    if not p.exists():
+        continue
+    for line, call, reason in i18n_violations(p.read_text()):
+        raise SystemExit(f'i18n: {p}:{line}: {reason} in {call!r}')
 print('i18n text domain OK')
 PY
 

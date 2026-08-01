@@ -46,7 +46,7 @@ So the accurate claim is: **no CSS files, no enqueued theme stylesheet, no front
 
 ## Internationalization
 
-Translatable UI strings live in **pattern PHP** (`patterns/*.php`) using the `dirtbag` text domain, and are collected in `languages/dirtbag.pot`.
+Translatable UI strings live in **theme PHP** — mostly the patterns (`patterns/*.php`), plus the occasional string in `functions.php` (currently the lightbox `aria-label`) — using the `dirtbag` text domain, and are collected in `languages/dirtbag.pot`.
 
 Block template and template-part HTML files (`templates/*.html`, `parts/*.html`) **cannot contain translation calls** — they are static HTML. Any prose written directly into those files is therefore untranslatable by WordPress design. Two consequences:
 
