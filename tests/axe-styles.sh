@@ -26,6 +26,30 @@ SPEC="${1:-}"
 
 cd "$(dirname "$0")"
 
+# Preflight: refuse to run against a theme root that is not this repo.
+#
+# The Studio site reaches the theme through a single symlink at
+# wp-content/themes/dirtbag, which is shared mutable state. A concurrent
+# session that repoints it — an agent worktree under .claude/worktrees/, say —
+# silently swaps the code under test, and the sweep then reports confident
+# results for a tree that is not yours. That happened: styles early in the loop
+# passed and later ones "failed", which reads exactly like a flaky race rather
+# than the wrong checkout. Fail loudly instead.
+REPO_ROOT="$(cd .. && pwd)"
+resolved="$($WP_CLI eval 'echo realpath(get_template_directory());' 2>/dev/null \
+  | grep -oE '/[^ ]*' | head -1 | tr -d '\r')"
+if [ -z "$resolved" ]; then
+  echo "preflight: could not resolve the active theme directory; continuing" >&2
+elif [ "${resolved%"$REPO_ROOT"}" = "$resolved" ]; then
+  echo "preflight: FAILED — the site's active theme resolves to" >&2
+  echo "  $resolved" >&2
+  echo "but this sweep is for" >&2
+  echo "  $REPO_ROOT" >&2
+  echo "Another session has likely repointed the Studio theme symlink. Repoint it," >&2
+  echo "restart the site (Studio caches the resolution), and re-run." >&2
+  exit 2
+fi
+
 apply() { $WP_CLI eval-file "$APPLIER" "$1" >/dev/null 2>&1; }
 
 restore() { echo "== restoring default global styles =="; apply default; }
