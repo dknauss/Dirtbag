@@ -2,8 +2,9 @@
 
 Dirtbag is a deliberately small, mostly *declarative* block theme: `theme.json`,
 templates, template parts, patterns, and style variations. `functions.php` exists
-but is thin — two render filters and the colour-scheme derivation — so there is
-very little imperative logic. That shapes how we test.
+but is thin — two render filters, the colour-scheme derivation, and the
+global-styles CSS guard — so there is very little imperative logic. That shapes
+how we test.
 
 ## Focus: accessibility and UX
 
@@ -152,11 +153,27 @@ each style gets its own boot and the variation is applied at boot via
 `tests/ci-style-blueprint.mjs` (which appends an `apply-style.php` step to the
 blueprint) rather than the sequential local loop.
 
-The applier verifies its own effect: it links the global-styles post to the active
+Both appliers verify their own effect, through the shared
+`playground/global-styles-post.php`: they link the global-styles post to the active
 theme's `wp_theme` term (WP-CLI runs with no current user, so core's own `tax_input`
-is silently dropped) and exits non-zero unless the post it wrote is the one the front
+is silently dropped) and exit non-zero unless the post they wrote is the one the front
 end's lookup returns. Without that, a failed activation is indistinguishable from a
 passing sweep — every spec would keep scanning whatever variation was already active.
+
+**Self-switching specs** — two specs in `tests/styles/` drive the applier themselves
+rather than being driven by it, so they are tagged `@self-switching` and
+`axe-styles.sh` excludes them from its per-style loop (they would otherwise fight it
+for the active variation). Both are local-Studio only and self-skip elsewhere:
+`sticking.spec.js` (`npm run test:styles:sticking`) for the A→B→A style switch, and
+`additional-css.spec.js` (`npm run test:styles:additional-css`), which adds user
+Additional CSS the way the Site Editor panel does and asserts that theme.json's root
+`styles.css` still reaches the page. See [development.md](development.md) → "Why root
+`styles.css` needs a guard".
+
+Because they mutate global styles directly rather than through `axe-styles.sh`, they
+carry their own copy of its checkout guard: `assertThemeCheckout()` before the first
+write, and again before the `afterAll` restore, so an abort against a foreign
+checkout cannot write to somebody else's site on the way out.
 
 **Viewports** — run the keyboard/overlay specs at a mobile width (360×640) and a
 desktop width; add small-viewport screenshot review (240×320, 320×240, 360×640) to

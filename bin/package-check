@@ -33,16 +33,32 @@ for p in json_files:
     json.loads(p.read_text())
 print('JSON OK')
 
-# A variation's background feeds the color-scheme/theme-color meta tags
-# (dirtbag_head_color_meta). That derivation only accepts a literal hex colour
-# and fails closed otherwise, so a variation authored with rgb()/a named colour
-# /an unresolved var() would silently drop both tags. Require the literal form.
+# Style variation invariants. Two things a variation must get right, both of
+# which fail silently at render time rather than loudly here.
+#
+# 1. `styles.color.background` feeds the color-scheme/theme-color meta tags
+#    (dirtbag_head_color_meta). That derivation only accepts a literal hex colour
+#    and fails closed otherwise, so a variation authored with rgb()/a named
+#    colour/an unresolved var() would silently drop both tags.
+# 2. `styles.css` must not appear at all. theme.json's root `styles.css` is a
+#    *string*, and core merges global styles with array_replace_recursive() — so
+#    any other origin that sets it REPLACES the theme's whole root stylesheet
+#    instead of appending, dropping the truck-icon filter, the .front-grid
+#    subgrid, the sidebar thumbnails and the gallery caption escape.
+#    dirtbag_preserve_root_custom_css() repairs that for the *user* layer (Site
+#    Editor > Styles > Additional CSS), but applying a variation copies its JSON
+#    into that same layer already carrying the clobbering value, so keep
+#    variations out of the key entirely. Per-block `styles.blocks.*.css` merges
+#    per key and is not affected.
 hex_re = re.compile(r'^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$')
 for p in sorted(Path('styles').glob('*.json')):
-    bg = json.loads(p.read_text()).get('styles', {}).get('color', {}).get('background')
+    styles = json.loads(p.read_text()).get('styles', {})
+    bg = styles.get('color', {}).get('background')
     if bg is not None and not hex_re.match(bg):
         raise SystemExit(f'{p}: styles.color.background must be a literal hex colour, got {bg!r}')
-print('Style variation backgrounds OK')
+    if 'css' in styles:
+        raise SystemExit(f'{p}: style variations must not define styles.css (it replaces theme.json root CSS)')
+print('Style variation invariants OK')
 
 # Screenshot dimensions without Pillow.
 with open('screenshot.png', 'rb') as f:
