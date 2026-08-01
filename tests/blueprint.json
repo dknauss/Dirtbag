@@ -30,7 +30,7 @@
     },
     {
       "step": "runPHP",
-      "code": "<?php require '/wordpress/wp-load.php'; require get_theme_file_path('playground/seed-content.php'); dirtbag_playground_seed_content();"
+      "code": "<?php require '/wordpress/wp-load.php'; if ( get_stylesheet() !== 'dirtbag' ) { switch_theme( 'dirtbag' ); } require '/wordpress/wp-content/themes/dirtbag/playground/seed-content.php'; dirtbag_playground_seed_content();"
     }
   ]
 }
