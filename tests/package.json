@@ -11,7 +11,9 @@
     "test:styles:truck": "./axe-styles.sh truck-icon",
     "test:styles:head-meta": "./axe-styles.sh head-meta",
     "test:styles:screenshots": "./axe-styles.sh screenshots",
-    "test:styles:sticking": "playwright test --config playwright.styles.config.js sticking"
+    "test:styles:sticking": "playwright test --config playwright.styles.config.js sticking --workers=1",
+    "test:styles:additional-css": "playwright test --config playwright.styles.config.js additional-css --workers=1",
+    "test:styles:self-switching": "playwright test --config playwright.styles.config.js --grep @self-switching --workers=1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",

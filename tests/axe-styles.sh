@@ -20,8 +20,8 @@ STYLES=(default terminal amber-crt blueprint hi-vis minimalist newspaper)
 
 # Optional Playwright file filter (e.g. `truck-icon`, `screenshots`, `a11y-styles`)
 # passed by the test:styles:* npm scripts. With no argument, run the per-style
-# specs EXCEPT the in-session sticking test — it self-switches styles via the
-# applier and must not run inside this per-style loop.
+# specs EXCEPT those tagged `@self-switching` — they apply styles themselves via
+# the applier and must not run inside this per-style loop.
 SPEC="${1:-}"
 
 cd "$(dirname "$0")"
@@ -180,7 +180,7 @@ for style in "${STYLES[@]}"; do
       npx playwright test --config playwright.styles.config.js "$SPEC" || fail=1
   else
     DIRTBAG_STYLE="$style" DIRTBAG_BASE_URL="$BASE" \
-      npx playwright test --config playwright.styles.config.js --grep-invert "does not stick" || fail=1
+      npx playwright test --config playwright.styles.config.js --grep-invert "@self-switching" || fail=1
   fi
   # And again afterwards: a swap *during* this style would otherwise let its
   # results — including the last style's, and so the whole run's exit 0 — stand.

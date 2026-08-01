@@ -44,6 +44,19 @@ It does not mean the theme authors zero CSS. Theme styling is expressed the Word
 
 So the accurate claim is: **no CSS files, no enqueued theme stylesheet, no front-end JavaScript** — not "no CSS at all." WordPress core may additionally print block, layout, and global-style assets required by the active blocks.
 
+### Why root `styles.css` needs a guard
+
+Root `styles.css` is a **string**, and core merges global styles with `array_replace_recursive()`. A string key does not merge — it is replaced. So any other origin that sets `styles.css` wipes the theme's entire root stylesheet, and the most ordinary way to trigger that is Site Editor → Styles → **Additional CSS**: one declaration typed there used to delete all five rules above at once, with no error and nothing to point at.
+
+Two things keep that from happening:
+
+- `dirtbag_preserve_root_custom_css()` (`functions.php`) hooks `wp_theme_json_data_user` and re-prepends the theme's root CSS to the user layer, so both survive. Theme rules go first, leaving the user's own CSS last and therefore winning ties — which is what someone writing Additional CSS expects.
+- `bin/package-check` rejects a `styles.css` key in any `styles/*.json` variation. Applying a variation copies its JSON into that same user layer, so a variation defining root CSS would arrive already carrying the clobbering value.
+
+The rules cannot simply move to per-block `styles.blocks.*.css`, which *does* merge per key. Core runs per-block CSS through `WP_Theme_JSON::process_blocks_custom_css()`, which discards `@supports` and `@media` wrappers outright — dropping the `.front-grid` rule entirely — and rewrites every selector as `:root :where(…)`, capping it at 0-1-0 specificity, where the gallery caption escape would lose to core's own 0-4-0 selector. Root `styles.css` is emitted verbatim, at its authored specificity, which is why these rules live there.
+
+Regression coverage: `tests/styles/additional-css.spec.js`.
+
 ## Internationalization
 
 Translatable UI strings live in **pattern PHP** (`patterns/*.php`) using the `dirtbag` text domain, and are collected in `languages/dirtbag.pot`.
