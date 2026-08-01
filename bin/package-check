@@ -131,6 +131,21 @@ for p in [*Path('patterns').glob('*.php'), *Path('playground').glob('*.php')]:
         raise SystemExit(f'base64_decode found in {p} (not allowed; use a plain data file)')
 print('No base64_decode OK')
 
+# STDERR/STDOUT are defined only by the CLI SAPI. The playground/ scripts also run
+# under WordPress Playground's web SAPI, where referencing one is a fatal — and
+# because every such call sits on an error path, the fatal replaces the message
+# that would have explained the failure. Use dirtbag_playground_stderr() instead.
+cli_stream_re = re.compile(r'(?<![A-Za-z0-9_$\'"])(STDERR|STDOUT)(?![A-Za-z0-9_])')
+for p in [*sorted(Path('patterns').glob('*.php')), *sorted(Path('playground').glob('*.php'))]:
+    for n, line in enumerate(p.read_text(errors='ignore').splitlines(), 1):
+        code = line.split('//')[0].split('#')[0]
+        if code.lstrip().startswith('*'):
+            continue  # docblock prose may name the constant
+        if cli_stream_re.search(code):
+            raise SystemExit(f'{p}:{n}: {cli_stream_re.search(code).group(1)} is CLI-only and fatals under '
+                             'Playground; use dirtbag_playground_stderr()')
+print('No CLI-only stream constants OK')
+
 # Reconcile guardrails: artifacts a raw Site-Editor export reintroduces and the
 # reconcile step is supposed to strip. Fail loudly so they cannot slip back in.
 reconcile_artifacts = {
