@@ -130,6 +130,11 @@ for style in "${STYLES[@]}"; do
   if ! apply "$style"; then
     echo "  apply failed for $style"
     fail=1
+    # Check before `continue` skips the post-style assertion below. A failed
+    # apply is itself a plausible symptom of the site having been repointed, and
+    # leaving checkout_is_foreign unset here would let the EXIT trap restore
+    # into the foreign checkout — the very thing that flag exists to prevent.
+    assert_theme_checkout "after failed apply for '$style'"
     continue
   fi
   if [ -n "$SPEC" ]; then
