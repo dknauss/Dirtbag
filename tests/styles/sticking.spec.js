@@ -82,7 +82,9 @@ test.describe('style-switch sticking guard (A→B→A)', () => {
     try { applyStyle('default'); } catch { /* best-effort */ }
   });
 
-  test(`[${STYLE_A}→${STYLE_B}→${STYLE_A}] truck-icon filter does not stick`, async ({ page }) => {
+  // @self-switching: applies styles itself, so axe-styles.sh excludes it from the
+  // per-style loop (which would otherwise fight it for the active variation).
+  test(`[${STYLE_A}→${STYLE_B}→${STYLE_A}] truck-icon filter does not stick @self-switching`, async ({ page }) => {
     test.skip(!applierAvailable(), 'requires the local Studio dirtbag site + apply-style.php (not available in CI / Playground)');
     const expectedA = norm(expectedFilter(STYLE_A));
     const expectedB = norm(expectedFilter(STYLE_B));

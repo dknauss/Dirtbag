@@ -80,6 +80,118 @@ if ( ! function_exists( 'dirtbag_site_logo_fallback' ) ) {
 }
 add_filter( 'render_block', 'dirtbag_site_logo_fallback', 10, 2 );
 
+if ( ! function_exists( 'dirtbag_theme_root_custom_css' ) ) {
+	/**
+	 * The theme's own root custom CSS, as declared in theme.json `styles.css`.
+	 *
+	 * Read through the resolver rather than the file so a child theme's and a
+	 * style variation's contributions are included, and cached for the request.
+	 *
+	 * @return string Root custom CSS, or '' if the theme declares none.
+	 */
+	function dirtbag_theme_root_custom_css() {
+		static $css      = null;
+		static $resolving = false;
+
+		if ( null !== $css ) {
+			return $css;
+		}
+
+		/*
+		 * get_theme_data() fires `wp_theme_json_data_theme`; if some other
+		 * extender's callback reaches back into the user data, this function is
+		 * re-entered before the static is set. Bail rather than recurse.
+		 */
+		if ( $resolving ) {
+			return '';
+		}
+
+		/*
+		 * get_theme_data() returns a WP_Theme_JSON (the WP_Theme_JSON_Data wrapper
+		 * is transient, around the filter above). get_raw_data(), not get_data():
+		 * the latter flattens presets across origins and rewrites opt-ins as
+		 * appearanceTools, where we want the `styles.css` string exactly as the
+		 * theme authored it.
+		 */
+		$resolving = true;
+		$raw       = WP_Theme_JSON_Resolver::get_theme_data( array(), array( 'with_supports' => false ) )->get_raw_data();
+		$resolving = false;
+
+		$css = isset( $raw['styles']['css'] ) ? (string) $raw['styles']['css'] : '';
+
+		return $css;
+	}
+}
+
+if ( ! function_exists( 'dirtbag_preserve_root_custom_css' ) ) {
+	/**
+	 * Keep theme.json's root CSS when the user adds their own Additional CSS.
+	 *
+	 * Dirtbag's `theme.json` carries a root `styles.css` string holding the rules
+	 * core settings cannot express: the truck-icon `filter`, the `.front-grid`
+	 * subgrid, the sidebar thumbnails, and the gallery caption escape. Core merges
+	 * global styles with `array_replace_recursive()`, and because root `styles.css`
+	 * is a *string* rather than an array, any other origin that sets it REPLACES
+	 * the theme's value instead of appending to it. So a site owner who opened
+	 * Site Editor → Styles → Additional CSS and typed one declaration silently
+	 * deleted the theme's entire root stylesheet — no error, no obvious cause.
+	 *
+	 * This re-prepends the theme's CSS to the user layer, so both survive. Order
+	 * matters: the theme's rules go first, leaving the user's own CSS last and
+	 * therefore winning ties, which is what someone writing Additional CSS expects.
+	 *
+	 * The rules cannot instead move to per-block `styles.blocks.*.css`, which does
+	 * merge per key: core runs that through
+	 * `WP_Theme_JSON::process_blocks_custom_css()`, which discards `@supports` and
+	 * `@media` wrappers outright and rewrites every selector as `:root :where(…)`,
+	 * capping it at 0-1-0 specificity. That would drop the `.front-grid` rule and
+	 * leave the gallery caption escape losing to core's own 0-4-0 selector.
+	 *
+	 * Runs on the user layer only, which is the one that gets clobbered; theme and
+	 * variation data are merged before it and are unaffected.
+	 *
+	 * @param WP_Theme_JSON_Data $theme_json User-origin global styles data.
+	 * @return WP_Theme_JSON_Data Data with the theme's root CSS restored.
+	 */
+	function dirtbag_preserve_root_custom_css( $theme_json ) {
+		if ( ! is_object( $theme_json ) || ! method_exists( $theme_json, 'update_with' ) ) {
+			return $theme_json;
+		}
+
+		$data = $theme_json->get_data();
+
+		/*
+		 * Presence of the key is what matters, not whether it holds anything.
+		 * array_replace_recursive() replaces on the key, so a `css` of '' or
+		 * whitespace wipes the theme's root CSS just as thoroughly as a real rule
+		 * does — verified against WP 7.0, where an empty string takes the merged
+		 * root CSS from 2152 bytes to 0. Clearing the Additional CSS panel can
+		 * leave exactly that, so an `empty()`/`trim()` test here would skip the
+		 * repair in one of the cases that most needs it.
+		 */
+		if ( ! isset( $data['styles']['css'] ) ) {
+			return $theme_json;
+		}
+
+		$user_css = (string) $data['styles']['css'];
+
+		$theme_css = dirtbag_theme_root_custom_css();
+		if ( '' === $theme_css || false !== strpos( $user_css, $theme_css ) ) {
+			return $theme_json;
+		}
+
+		$combined = '' === $user_css ? $theme_css : $theme_css . "\n" . $user_css;
+
+		return $theme_json->update_with(
+			array(
+				'version' => isset( $data['version'] ) ? $data['version'] : 3,
+				'styles'  => array( 'css' => $combined ),
+			)
+		);
+	}
+}
+add_filter( 'wp_theme_json_data_user', 'dirtbag_preserve_root_custom_css' );
+
 if ( ! function_exists( 'dirtbag_lightbox_trigger_label' ) ) {
 	/**
 	 * Give the core image lightbox trigger a static accessible name.
