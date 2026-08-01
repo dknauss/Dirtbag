@@ -14,10 +14,19 @@
 // itself. The PHP side is unit-tested separately in
 // tests/php/color-scheme-test.php.
 //
-// Unlike truck-icon.spec.js this DOES run in CI: it depends on
-// `styles.color.background`, which survives the Playground per-style boot (the
-// same reason the gated color-contrast sweep works there), rather than on a
-// `settings.custom` override, which does not.
+// Local-Studio check, skipped in CI — like truck-icon.spec.js, but for a
+// different and more troubling reason. The first CI run of this spec failed on
+// all six variations with *zero* tags while passing on `default`, which is the
+// signature of the variation never being applied at all: no background, so the
+// theme correctly emits nothing. Booting Playground locally with the same
+// `$args`-into-runPHP construction that tests/ci-style-blueprint.mjs generates
+// reproduces it — the style does not apply.
+//
+// If that is right, the CI per-style matrix has been scanning the *default*
+// style seven times, and `color-contrast` passing "across every style" there is
+// vacuous. Tracked separately; do not un-skip this until CI genuinely applies
+// the variation, or it will fail for a reason that has nothing to do with the
+// tags.
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
@@ -61,6 +70,7 @@ function colorSchemeFor(hex) {
 
 test.describe(`head colour metadata: ${STYLE}`, () => {
   test(`[${STYLE}] color-scheme and theme-color match the active background`, async ({ page }) => {
+    test.skip(!!process.env.CI, 'CI per-style boot does not apply the variation; local-Studio check');
     await page.goto('/');
 
     const background = declaredBackground(STYLE);
@@ -90,7 +100,30 @@ test.describe(`head colour metadata: ${STYLE}`, () => {
     // The tag is not just present — the browser actually honours it. This is
     // what makes form controls and scrollbars render dark on the dark
     // variations instead of as light UA widgets on a black page.
-    const applied = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
-    expect(applied, `computed color-scheme for "${STYLE}"`).toContain(expectedScheme);
+    //
+    // Probe the UA system colours, NOT getComputedStyle().colorScheme: a
+    // `<meta name="color-scheme">` sets the page's *used* colour scheme without
+    // reflecting into the computed CSS `color-scheme` property, which stays
+    // "normal" unless a stylesheet declares it (verified in Chrome 141 against
+    // this site). The `Canvas` system colour does follow the used scheme —
+    // rgb(18,18,18) under dark, rgb(255,255,255) under light.
+    const canvas = await page.evaluate(() => {
+      const probe = document.createElement('div');
+      probe.style.cssText = 'background: Canvas;';
+      document.body.appendChild(probe);
+      const value = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return value;
+    });
+
+    const [r, g, b] = canvas.match(/\d+/g).map(Number);
+    const canvasIsDark = relativeLuminance(
+      `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`
+    ) < 0.5;
+
+    expect(
+      canvasIsDark ? 'dark' : 'light',
+      `browser should honour color-scheme for "${STYLE}" (Canvas resolved to ${canvas})`
+    ).toBe(expectedScheme);
   });
 });

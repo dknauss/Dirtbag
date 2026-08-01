@@ -82,7 +82,7 @@ for p in root.rglob('*'):
         continue
     rel = p.as_posix()
     name = p.name
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.is_file():
         if name in {'.DS_Store', 'Thumbs.db', 'desktop.ini', 'error_log', 'php.ini', 'web.config', 'favicon.ico'}:
@@ -232,12 +232,12 @@ print('Image inventory OK')
 
 # No bundled frontend assets except required style.css and local images/SVGs.
 for p in root.rglob('*'):
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.is_file() and p.suffix in {'.js', '.woff', '.woff2', '.ttf', '.otf'}:
         raise SystemExit(f'Unexpected bundled frontend asset: {p}')
 for p in root.rglob('*.css'):
-    if any(part in {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
+    if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.as_posix() != 'style.css':
         raise SystemExit(f'Unexpected CSS file: {p}')
