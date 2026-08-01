@@ -56,17 +56,55 @@ function expectedFilter(slug) {
   return typeof value === 'string' ? value : 'none';
 }
 
+// Every WP-CLI call is bounded. `afterAll` is timed separately from the test body
+// and does not inherit its test.setTimeout(), so an unbounded execSync against a
+// stalled Studio would hang the hook rather than fail it. 60s is comfortably above
+// a cold round trip (~10-15s) and well under the hook budget set below.
+const WP_CLI_TIMEOUT_MS = 60_000;
+
 function wpCli(command) {
   return execSync(`${WP_CLI} ${command}`, {
     stdio: ['ignore', 'pipe', 'pipe'],
     encoding: 'utf8',
+    timeout: WP_CLI_TIMEOUT_MS,
   });
 }
 
-const applyAdditionalCss = (slug) => wpCli(`eval-file "${CSS_APPLIER}" ${slug}`);
-const clearAdditionalCss = (slug) => wpCli(`eval-file "${CSS_APPLIER}" ${slug} clear`);
-const emptyAdditionalCss = (slug) => wpCli(`eval-file "${CSS_APPLIER}" ${slug} empty`);
-const applyStyle = (slug) => wpCli(`eval-file "${APPLIER}" ${slug}`);
+// Anything that writes global styles re-probes first, and demands a positive
+// 'match'. One assertion at the top of the test would only cover the first write:
+// the later ones are separated by WP-CLI round trips and page loads, which is a
+// wide-open window for exactly the mid-run symlink swap axe-styles.sh checks
+// around every style.
+//
+// 'unknown' does not authorise a write. A probe that fails transiently — Studio
+// restarting because another session repointed it, say — is precisely the moment
+// the symlink is most likely to have moved, so treating "cannot tell" as "safe"
+// inverts the guard exactly when it matters. The applier can still succeed
+// against a foreign checkout after a failed probe, which would mutate that
+// session's global styles and test a tree this spec never read. Environments that
+// genuinely cannot probe opt in explicitly rather than being waved through.
+//
+// Reads stay unguarded — against a foreign checkout they waste a run, they do not
+// damage one.
+let didMutate = false;
+
+function mutate(command) {
+  const state = themeCheckoutState();
+  if (state !== 'match' && !(state === 'unknown' && process.env.DIRTBAG_MUTATE_WITHOUT_PROBE === '1')) {
+    throw new Error(
+      `additional-css: refusing to write global styles — checkout ${state} ` +
+        `(expected ${process.env.DIRTBAG_EXPECTED_THEME_PATH || REPO}). ` +
+        'Another session may have repointed the Studio theme symlink. ' +
+        'Set DIRTBAG_MUTATE_WITHOUT_PROBE=1 if this environment cannot probe.'
+    );
+  }
+  didMutate = true;
+  return wpCli(command);
+}
+
+const applyAdditionalCss = (slug) => mutate(`eval-file "${CSS_APPLIER}" ${slug}`);
+const clearAdditionalCss = (slug) => mutate(`eval-file "${CSS_APPLIER}" ${slug} clear`);
+const emptyAdditionalCss = (slug) => mutate(`eval-file "${CSS_APPLIER}" ${slug} empty`);
 
 // Refuse to run against a theme checkout that is not this repo — the same guard
 // axe-styles.sh applies, for the same reason. This spec drives the applier itself
@@ -80,10 +118,12 @@ const applyStyle = (slug) => wpCli(`eval-file "${APPLIER}" ${slug}`);
 // /internal/symlinks<host path>; strip that one known prefix, then compare
 // exactly. Both template and stylesheet must match, so an active child theme of
 // Dirtbag cannot pass.
-// Returns 'match' | 'mismatch' | 'unknown'. Callers decide what each means:
-// reading is only worth doing against the right checkout, but *writing* to the
-// wrong one is what actually damages another session, so the two have different
-// tolerances for 'unknown'. Mirrors theme_checkout_state() in axe-styles.sh.
+//
+// Returns 'match' | 'mismatch' | 'unknown'. Both callers — mutate() and the
+// afterAll restore — require a positive 'match', each with its own opt-out for
+// environments that cannot probe. Mirrors theme_checkout_state() in
+// axe-styles.sh, and takes the strict stance its restore() takes rather than the
+// warn-and-continue its per-style loop takes: every caller here writes.
 function themeCheckoutState() {
   let out;
   try {
@@ -100,23 +140,6 @@ function themeCheckoutState() {
   const [template, stylesheet] = payload[1].split('|').map((p) => p.replace(/^\/internal\/symlinks/, ''));
   const expected = process.env.DIRTBAG_EXPECTED_THEME_PATH || REPO;
   return template === expected && stylesheet === expected ? 'match' : 'mismatch';
-}
-
-// Entry guard. An undeterminable result is not a reason to invent a failure in
-// an environment whose WP-CLI cannot run this eval, so it warns and proceeds —
-// the test body only reads and writes this site's own global styles, which the
-// afterAll restore then puts back.
-function assertThemeCheckout() {
-  const state = themeCheckoutState();
-  if (state === 'unknown') {
-    console.warn('additional-css: could not resolve the active theme directory; skipping checkout guard');
-    return;
-  }
-  const expected = process.env.DIRTBAG_EXPECTED_THEME_PATH || REPO;
-  expect(
-    state,
-    `the site's active theme must be this checkout (${expected}); another session may have repointed the Studio symlink`
-  ).toBe('match');
 }
 
 // Resolved through WP-CLI rather than the REST API: the spec already depends on
@@ -191,25 +214,37 @@ function assertThemeCssIntact(effects, when) {
 
 test.describe('theme root CSS survives user Additional CSS', () => {
   test.afterAll(async () => {
-    // Restore the default (empty) user layer for other test sessions — but only
-    // after re-confirming the checkout, never on a cached result from the test
-    // body. This hook runs even when the body aborted, including when it aborted
-    // *because* the guard failed, and restoring writes global styles: an
-    // unconditional cleanup would mutate the foreign site the guard just refused
-    // to touch. Re-probing rather than trusting a flag matches axe-styles.sh's
-    // restore(), and for the same reason — by now the earlier assertion may be
-    // arbitrarily stale.
-    // Positive match required. 'unknown' is not evidence of safety: a transient
-    // probe failure — Studio restarting after another session repointed it, say —
-    // would otherwise be followed by a write that lands on the foreign checkout,
-    // which is exactly what this guard exists to prevent. Same stance, and the
-    // same DIRTBAG_RESTORE_WITHOUT_PROBE escape hatch, as axe-styles.sh.
-    const state = themeCheckoutState();
+    // This hook is timed separately from the test body and does not inherit its
+    // test.setTimeout(), so it needs its own budget for the WP-CLI round trips.
+    test.setTimeout(120_000);
+
+    // Nothing was written, so there is nothing to put back — and no reason to
+    // spend a probe finding that out. Covers the self-skip path (Studio absent
+    // or stopped) and an abort on the entry guard, both of which reach here.
+    if (!didMutate) {
+      return;
+    }
+
+    // Positive match required, re-probed rather than cached. This runs even when
+    // the body aborted, and restoring writes global styles, so a stale or absent
+    // result must not authorise a write. 'unknown' is not evidence of safety: a
+    // transient probe failure — Studio restarting after another session repointed
+    // it, say — would otherwise be followed by a write landing on the foreign
+    // checkout, which is exactly what this guard exists to prevent. Same stance,
+    // and the same DIRTBAG_RESTORE_WITHOUT_PROBE escape hatch, as axe-styles.sh.
+    let state;
+    try {
+      state = themeCheckoutState();
+    } catch {
+      state = 'unknown';
+    }
     if (state !== 'match' && !(state === 'unknown' && process.env.DIRTBAG_RESTORE_WITHOUT_PROBE === '1')) {
       console.warn(`additional-css: skipping restore — checkout ${state} (set DIRTBAG_RESTORE_WITHOUT_PROBE=1 to restore anyway)`);
       return;
     }
-    try { applyStyle('default'); } catch { /* best-effort */ }
+    // wpCli directly: the checkout is already confirmed immediately above, so
+    // routing through mutate() would only spend a second probe re-confirming it.
+    try { wpCli(`eval-file "${APPLIER}" default`); } catch { /* best-effort */ }
   });
 
   // @self-switching: see sticking.spec.js — excluded from axe-styles.sh's per-style loop.
@@ -227,9 +262,6 @@ test.describe('theme root CSS survives user Additional CSS', () => {
     // Desktop only: the .front-grid subgrid rule is gated on min-width 782px, so
     // the mobile project would legitimately see plain flex columns.
     test.skip(test.info().project.name !== 'desktop', 'front-grid subgrid applies at >=782px');
-
-    // Before the first mutation: everything below writes global styles.
-    assertThemeCheckout();
 
     expect(expectedFilter(STYLE), `${STYLE} must define a truckIconFilter for this test to mean anything`).not.toBe('none');
 
