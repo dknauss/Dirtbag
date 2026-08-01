@@ -152,6 +152,12 @@ each style gets its own boot and the variation is applied at boot via
 `tests/ci-style-blueprint.mjs` (which appends an `apply-style.php` step to the
 blueprint) rather than the sequential local loop.
 
+The applier verifies its own effect: it links the global-styles post to the active
+theme's `wp_theme` term (WP-CLI runs with no current user, so core's own `tax_input`
+is silently dropped) and exits non-zero unless the post it wrote is the one the front
+end's lookup returns. Without that, a failed activation is indistinguishable from a
+passing sweep — every spec would keep scanning whatever variation was already active.
+
 **Viewports** — run the keyboard/overlay specs at a mobile width (360×640) and a
 desktop width; add small-viewport screenshot review (240×320, 320×240, 360×640) to
 the manual checklist.
