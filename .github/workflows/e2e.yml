@@ -113,6 +113,8 @@ jobs:
   # style variation. Playground is in-memory with no persistent wp-cli, so each
   # style gets its own boot: the blueprint applies the variation at boot via
   # playground/apply-style.php (locally this is the tests/axe-styles.sh loop).
+  # The apply is verified against rendered output before the sweep runs — see
+  # the "Assert the requested style is actually applied" step below.
   e2e-styles:
     runs-on: ubuntu-latest
     strategy:
@@ -141,6 +143,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Boot WordPress Playground (theme + seed + style)
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
         run: |
           # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
           # connection-refused boot crash (WordPress/wordpress-playground#3830,
@@ -167,10 +172,19 @@ jobs:
             # bare 200 can precede the seed import) AND the seeded author's
             # nicename survived: a flaky boot can empty user identity fields,
             # which later fails the axe link-name gate as a nameless author
-            # link. Bail early if the server died.
+            # link — AND the requested style variation actually rendered.
+            #
+            # That last condition is a readiness check, not just a gate. Twelve of
+            # thirteen local boots applied cleanly, but one came up seeded with the
+            # variation missing from the rendered page even though the apply step
+            # had verified itself in-process — so treat "style not applied" the way
+            # this loop already treats a half-finished seed, and retry. Without it
+            # the sweep would run against the default style and pass, which is how
+            # the matrix silently scanned `default` seven times.
             for i in $(seq 1 60); do
               if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image \
-                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then return 0; fi
+                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"' \
+                && node tests/assert-style-applied.mjs >/dev/null 2>&1; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -179,13 +193,25 @@ jobs:
           for attempt in 1 2 3; do
             echo "::group::Playground boot attempt $attempt"
             if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
-            echo "boot attempt $attempt failed (EBADF/timeout); retrying" >&2
+            echo "boot attempt $attempt failed (EBADF/timeout/style not applied); retrying" >&2
             echo "::endgroup::"
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename + '${DIRTBAG_STYLE}' applied) after 3 attempts; aborting so the suite does not run against a mis-seeded or wrong-style site."
           exit 1
+
+      # Gate the sweep on the variation having actually rendered. A Playground
+      # `runPHP` step swallows STDOUT, STDERR and the exit code, so for a long
+      # while every leg of this matrix scanned the *default* style and reported
+      # per-style coverage. Rendered output is the only thing that cannot lie
+      # about which variation is live, so check it before the suite runs — a
+      # failure here means the boot, not the theme, is broken.
+      - name: Assert the requested style is actually applied
+        run: node tests/assert-style-applied.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
 
       - name: Run per-style axe sweep
         working-directory: tests

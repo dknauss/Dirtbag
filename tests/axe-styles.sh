@@ -175,6 +175,14 @@ for style in "${STYLES[@]}"; do
     assert_theme_checkout "after failed apply for '$style'"
     continue
   fi
+  # A successful `apply` is not proof the site renders the variation — see
+  # docs/testing-strategy.md for the two ways that came apart. Check the rendered
+  # page before scanning it, so a per-style result can never be a default in
+  # disguise. Same gate the CI matrix uses.
+  if ! DIRTBAG_STYLE="$style" DIRTBAG_BASE_URL="$BASE" node assert-style-applied.mjs; then
+    fail=1
+    continue
+  fi
   if [ -n "$SPEC" ]; then
     DIRTBAG_STYLE="$style" DIRTBAG_BASE_URL="$BASE" \
       npx playwright test --config playwright.styles.config.js "$SPEC" || fail=1
