@@ -73,15 +73,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            # Pass the versions explicitly. The CLI's --wp/--php default to
-            # "latest"/8.3 and take precedence over the blueprint's
-            # preferredVersions, so the pin in tests/blueprint.json was being
-            # silently ignored and every run tested WordPress latest rather
-            # than the version this theme targets. Read them from the
-            # blueprint so it stays the single source of truth.
-            WP_VER="$(node -p "require('./tests/blueprint.json').preferredVersions.wp")"
-            PHP_VER="$(node -p "require('./tests/blueprint.json').preferredVersions.php")"
-            npx @wp-playground/cli@3.1.42 server --port 9400 --wp="$WP_VER" --php="$PHP_VER" --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
@@ -180,15 +172,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            # Pass the versions explicitly. The CLI's --wp/--php default to
-            # "latest"/8.3 and take precedence over the blueprint's
-            # preferredVersions, so the pin in tests/blueprint.json was being
-            # silently ignored and every run tested WordPress latest rather
-            # than the version this theme targets. Read them from the
-            # blueprint so it stays the single source of truth.
-            WP_VER="$(node -p "require('./tests/blueprint.json').preferredVersions.wp")"
-            PHP_VER="$(node -p "require('./tests/blueprint.json').preferredVersions.php")"
-            npx @wp-playground/cli@3.1.42 server --port 9400 --wp="$WP_VER" --php="$PHP_VER" --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
