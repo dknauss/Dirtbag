@@ -26,7 +26,7 @@ SPEC="${1:-}"
 
 cd "$(dirname "$0")"
 
-# Preflight: refuse to run against a theme root that is not this repo.
+# Guard: refuse to run against a theme checkout that is not this repo.
 #
 # The Studio site reaches the theme through a single symlink at
 # wp-content/themes/dirtbag, which is shared mutable state. A concurrent
@@ -35,20 +35,61 @@ cd "$(dirname "$0")"
 # results for a tree that is not yours. That happened: styles early in the loop
 # passed and later ones "failed", which reads exactly like a flaky race rather
 # than the wrong checkout. Fail loudly instead.
-REPO_ROOT="$(cd .. && pwd)"
-resolved="$($WP_CLI eval 'echo realpath(get_template_directory());' 2>/dev/null \
-  | grep -oE '/[^ ]*' | head -1 | tr -d '\r')"
-if [ -z "$resolved" ]; then
-  echo "preflight: could not resolve the active theme directory; continuing" >&2
-elif [ "${resolved%"$REPO_ROOT"}" = "$resolved" ]; then
-  echo "preflight: FAILED — the site's active theme resolves to" >&2
-  echo "  $resolved" >&2
-  echo "but this sweep is for" >&2
-  echo "  $REPO_ROOT" >&2
-  echo "Another session has likely repointed the Studio theme symlink. Repoint it," >&2
-  echo "restart the site (Studio caches the resolution), and re-run." >&2
+#
+# Checked before EVERY style, not once up front: the swap we are guarding
+# against happens mid-run, so a single preflight would wave through exactly the
+# case that motivated this.
+REPO_ROOT="$(cd .. && pwd -P)"
+
+# Studio serves host paths through a virtual mount, so realpath() returns
+# /internal/symlinks<host path>. Strip that one known prefix, then compare
+# exactly — a suffix test would accept /tmp/workspace/dirtbag as
+# /workspace/dirtbag.
+normalize_theme_path() { printf '%s' "${1#/internal/symlinks}"; }
+
+# Both the template and the stylesheet directory must be this repo. Checking
+# only the template would pass an active *child* theme of Dirtbag, whose own
+# templates and styles come from somewhere else entirely.
+#
+# The sentinel wrapper keeps this robust against PHP notices, which Studio can
+# emit on the same line as the value; reading the whole payload (rather than a
+# space-delimited token) keeps paths containing spaces intact.
+resolve_theme_paths() {
+  $WP_CLI eval 'echo "DBSTART:" . realpath(get_template_directory()) . "|" . realpath(get_stylesheet_directory()) . ":DBEND";' 2>/dev/null \
+    | tr -d '\r' \
+    | sed -n 's/.*DBSTART:\(.*\):DBEND.*/\1/p' \
+    | head -1
+}
+
+assert_theme_checkout() {
+  local when="$1" payload template stylesheet
+  payload="$(resolve_theme_paths)"
+
+  if [ -z "$payload" ]; then
+    # Can't determine it — warn rather than invent a failure, since other
+    # environments may not support this eval.
+    echo "warning ($when): could not resolve the active theme directory" >&2
+    return 0
+  fi
+
+  template="$(normalize_theme_path "${payload%%|*}")"
+  stylesheet="$(normalize_theme_path "${payload##*|}")"
+
+  if [ "$template" = "$REPO_ROOT" ] && [ "$stylesheet" = "$REPO_ROOT" ]; then
+    return 0
+  fi
+
+  echo "FAILED ($when): the site's active theme is not this checkout." >&2
+  echo "  template:   $template" >&2
+  echo "  stylesheet: $stylesheet" >&2
+  echo "  expected:   $REPO_ROOT" >&2
+  echo "Another session has likely repointed the Studio theme symlink, or a child" >&2
+  echo "theme is active. Repoint it, restart the site (Studio caches the" >&2
+  echo "resolution), and re-run." >&2
   exit 2
-fi
+}
+
+assert_theme_checkout "preflight"
 
 apply() { $WP_CLI eval-file "$APPLIER" "$1" >/dev/null 2>&1; }
 
@@ -58,6 +99,9 @@ trap restore EXIT
 fail=0
 for style in "${STYLES[@]}"; do
   echo "== style: $style =="
+  # Re-assert before each style: a mid-run swap must abort, not quietly test
+  # the other checkout for the remaining iterations.
+  assert_theme_checkout "before style '$style'"
   if ! apply "$style"; then
     echo "  apply failed for $style"
     fail=1
