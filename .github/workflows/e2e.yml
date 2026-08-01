@@ -70,7 +70,10 @@ jobs:
             return 0
           }
           boot() {
-            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json &
+            # Capture the server's own output. A failing `runPHP` boot step
+            # reports itself here and nowhere else, so without this a boot
+            # failure is unattributable.
+            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
@@ -166,7 +169,10 @@ jobs:
             return 0
           }
           boot() {
-            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json &
+            # Capture the server's own output. A failing `runPHP` boot step
+            # reports itself here and nowhere else, so without this a boot
+            # failure is unattributable.
+            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
@@ -194,6 +200,15 @@ jobs:
             echo "::group::Playground boot attempt $attempt"
             if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
             echo "boot attempt $attempt failed (EBADF/timeout/style not applied); retrying" >&2
+            # Say WHY. The readiness loop above deliberately runs the gate
+            # quietly (it polls), so without this the only signal is "failed",
+            # which is exactly the kind of opaque failure this whole change
+            # exists to eliminate.
+            echo "--- diagnostics for attempt $attempt ---" >&2
+            echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
+            node tests/assert-style-applied.mjs >&2 2>&1 || true
+            echo "--- last 40 lines of the Playground server log ---" >&2
+            tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
