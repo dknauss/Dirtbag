@@ -3,10 +3,10 @@
 // declares no background) emits neither.
 //
 // Like truck-icon.spec.js, this scans whatever variation is currently active;
-// the driver (tests/axe-styles.sh) applies each variation in turn and re-runs
-// this config with the active slug in DIRTBAG_STYLE. The expected values are
-// derived from the source of truth (styles/<slug>.json) rather than a parallel
-// hardcoded table.
+// the driver (tests/axe-styles.sh locally, the e2e-styles matrix in CI) applies
+// each variation in turn and re-runs this config with the active slug in
+// DIRTBAG_STYLE. The expected values are derived from the source of truth
+// (styles/<slug>.json) rather than a parallel hardcoded table.
 //
 // The luminance maths below deliberately re-implements
 // dirtbag_color_scheme_for() from functions.php in JavaScript: two independent
@@ -14,19 +14,14 @@
 // itself. The PHP side is unit-tested separately in
 // tests/php/color-scheme-test.php.
 //
-// Local-Studio check, skipped in CI — like truck-icon.spec.js, but for a
-// different and more troubling reason. The first CI run of this spec failed on
-// all six variations with *zero* tags while passing on `default`, which is the
-// signature of the variation never being applied at all: no background, so the
-// theme correctly emits nothing. Booting Playground locally with the same
-// `$args`-into-runPHP construction that tests/ci-style-blueprint.mjs generates
-// reproduces it — the style does not apply.
-//
-// If that is right, the CI per-style matrix has been scanning the *default*
-// style seven times, and `color-contrast` passing "across every style" there is
-// vacuous. Tracked separately; do not un-skip this until CI genuinely applies
-// the variation, or it will fail for a reason that has nothing to do with the
-// tags.
+// History: this spec's first CI run failed on all six variations with *zero*
+// tags while passing on `default` — the signature of the variation never being
+// applied at all. That turned out to be a real bug in the harness, not in the
+// tags: playground/apply-style.php wrote the variation to a wp_global_styles
+// post it had created without its `wp_theme` term, so WordPress never read it
+// back. The CI matrix had been scanning the default style seven times. Fixed in
+// apply-style.php and now gated by tests/assert-style-applied.mjs, which fails
+// the boot before this spec can be blamed for it.
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
@@ -70,7 +65,6 @@ function colorSchemeFor(hex) {
 
 test.describe(`head colour metadata: ${STYLE}`, () => {
   test(`[${STYLE}] color-scheme and theme-color match the active background`, async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI per-style boot does not apply the variation; local-Studio check');
     await page.goto('/');
 
     const background = declaredBackground(STYLE);

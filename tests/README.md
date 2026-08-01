@@ -36,3 +36,18 @@ DIRTBAG_BASE_URL=https://your-site.test npm test
 `.github/workflows/e2e.yml` boots WordPress 7.0 in WordPress Playground (theme
 installed at the tested commit + seeded demo content) and runs this suite.
 `.github/workflows/package-check.yml` runs the static checks on every push/PR.
+
+The `e2e-styles` matrix gives each style variation its own boot, applied by
+`ci-style-blueprint.mjs` → `playground/apply-style.php`. Because a Playground
+`runPHP` step swallows STDOUT, STDERR and the exit code, a failed apply used to
+look exactly like a successful default boot — so `assert-style-applied.mjs` checks
+the *rendered* page before the sweep runs:
+
+```sh
+DIRTBAG_BASE_URL=http://127.0.0.1:9400 DIRTBAG_STYLE=terminal node assert-style-applied.mjs
+```
+
+It compares both layers of the variation — the `body` background (`styles`) and
+`--wp--custom--dirtbag--truck-icon-filter` (`settings`) — against
+`styles/<slug>.json`. See `docs/testing-strategy.md` for the two bugs it exists to
+catch.

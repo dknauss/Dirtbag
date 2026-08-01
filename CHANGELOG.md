@@ -12,9 +12,13 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 * `docs/head-metadata.md` — who emits what in `<head>`: what core already provides a block theme, the two tags Dirtbag adds, and why meta description, Open Graph, and JSON-LD deliberately need a plugin.
 * Unit tests for the colour-scheme derivation (`tests/php/color-scheme-test.php`, dependency-free plain PHP, run by `bin/package-check`) and a per-style browser spec (`tests/styles/head-meta.spec.js`).
 * `bin/package-check` now requires `styles.color.background` in each style variation to be a literal hex colour, since a non-hex value would silently drop both meta tags.
+* `tests/assert-style-applied.mjs` — a boot gate that checks the *rendered* page carries the style variation the harness asked for, in both the `styles` layer (body background) and the `settings` layer (`--wp--custom--dirtbag--truck-icon-filter`). Runs inside the CI boot readiness loop and again as a standalone gate before the per-style sweep.
 
 ### Fixed
 
+* The CI `e2e-styles` matrix had been scanning the **default** style on all seven legs. `playground/apply-style.php` let `WP_Theme_JSON_Resolver::get_user_global_styles_post_id()` create the `wp_global_styles` post, and `wp_insert_post()` silently drops the `wp_theme` term from `tax_input` when the current user cannot assign terms — which nobody can in a Playground `runPHP` boot step. The post was created without the term that every reader filters on, so the write landed somewhere WordPress never looked, and the front end fell back to theme.json. `apply-style.php` now attaches the term itself and verifies its own write.
+* Style variations applied by `playground/apply-style.php` lost their whole `settings` tree. Core hooks `wp_filter_global_styles_post()` onto `content_save_pre` for anyone lacking `unfiltered_html`, and its `remove_insecure_properties()` pass drops the free-form `settings.custom` before it reaches the database — so `settings.custom.dirtbag.truckIconFilter` never survived, and the truck logo kept theme.json's `none` on every variation.
+* `tests/styles/head-meta.spec.js` and `tests/styles/truck-icon.spec.js` no longer skip in CI. Both skips blamed Playground for what were really the two bugs above.
 * Repointed the WordPress Studio theme symlink, which referenced a stale path (`Developer/GitHub/dirtbag` rather than `Developer/GitHub/dknauss/dirtbag`). The per-style Playwright sweep had been running against whatever theme was active instead of Dirtbag.
 
 ## [0.1.17] - 2026-07-03

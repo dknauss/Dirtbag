@@ -3,11 +3,20 @@
 // not "stick" from a previously applied style.
 //
 // Like a11y-styles.spec.js, this scans whatever variation is currently active;
-// the driver (tests/axe-styles.sh) applies each variation in turn via
-// playground/apply-style.php and re-runs this config with the active slug in
-// DIRTBAG_STYLE. The expected filter is read straight from the source of truth
-// (theme.json for `default`, styles/<slug>.json otherwise) so the spec stays in
-// lockstep with the styles instead of hardcoding a parallel table.
+// the driver (tests/axe-styles.sh locally, the e2e-styles matrix in CI) applies
+// each variation in turn via playground/apply-style.php and re-runs this config
+// with the active slug in DIRTBAG_STYLE. The expected filter is read straight
+// from the source of truth (theme.json for `default`, styles/<slug>.json
+// otherwise) so the spec stays in lockstep with the styles instead of
+// hardcoding a parallel table.
+//
+// This used to be skipped in CI, blamed on the filter "not being re-emitted in
+// CI Playground". Two real bugs were hiding behind that: the variation was not
+// being applied at all (a wp_global_styles post created without its `wp_theme`
+// term), and core's kses pass on `content_save_pre` was stripping the whole
+// `settings` tree — including `settings.custom.dirtbag.truckIconFilter` — out of
+// the payload before it reached the database, leaving only theme.json's `none`.
+// Both are fixed in playground/apply-style.php, so this now runs everywhere.
 //
 // Scope note: this is the *in-page* logo, which CSS recolours via
 // `--wp--custom--dirtbag--truck-icon-filter`. The browser-tab favicon is a
@@ -37,11 +46,6 @@ const norm = (s) => (s || '').trim().replace(/\s+/g, ' ');
 
 test.describe(`truck icon colour: ${STYLE}`, () => {
   test(`[${STYLE}] header logo carries the right truckIconFilter`, async ({ page }) => {
-    // The variation's truckIconFilter override is emitted by a real WP/Studio
-    // global-styles request (verified locally) but NOT re-emitted by the CI
-    // Playground per-style boot, so this is a local-Studio check — run it via
-    // `npm run test:styles:truck`. CI keeps a11y + screenshots per style.
-    test.skip(!!process.env.CI, 'truckIconFilter override is not re-emitted in CI Playground; local-Studio check');
     await page.goto('/');
 
     // The masthead logo lives inside the .h-card group; the navigation-overlay
