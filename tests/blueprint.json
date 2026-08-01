@@ -1,6 +1,9 @@
 {
   "$schema": "https://playground.wordpress.net/blueprint-schema.json",
-  "preferredVersions": { "wp": "7.0", "php": "8.2" },
+  "preferredVersions": {
+    "wp": "7.0",
+    "php": "8.2"
+  },
   "steps": [
     {
       "step": "installTheme",
@@ -11,12 +14,15 @@
         "refType": "commit",
         "path": "/"
       },
-      "options": { "activate": true, "targetFolderName": "dirtbag" },
+      "options": {
+        "activate": true,
+        "targetFolderName": "dirtbag"
+      },
       "ifAlreadyInstalled": "overwrite"
     },
     {
       "step": "runPHP",
-      "code": "<?php require '/wordpress/wp-load.php'; require get_theme_file_path('playground/seed-content.php'); dirtbag_playground_seed_content();"
+      "code": "<?php require '/wordpress/wp-load.php'; if ( get_stylesheet() !== 'dirtbag' ) { switch_theme( 'dirtbag' ); } require '/wordpress/wp-content/themes/dirtbag/playground/seed-content.php'; dirtbag_playground_seed_content();"
     }
   ]
 }
