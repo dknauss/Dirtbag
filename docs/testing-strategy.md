@@ -1,8 +1,9 @@
 # Testing strategy
 
 Dirtbag is a deliberately small, mostly *declarative* block theme: `theme.json`,
-templates, template parts, patterns, and style variations. There is no
-`functions.php` and almost no imperative logic. That shapes how we test.
+templates, template parts, patterns, and style variations. `functions.php` exists
+but is thin — two render filters and the colour-scheme derivation — so there is
+very little imperative logic. That shapes how we test.
 
 ## Focus: accessibility and UX
 
@@ -71,6 +72,10 @@ and screen-reader spot checks. Checklist lives in `docs/backlog.md` (Release QA)
 ### 6. TDD — only the islands of real logic
 When actual logic is added, write the failing test first:
 
+- the colour-scheme derivation in `functions.php` — `dirtbag_relative_luminance()`
+  and `dirtbag_color_scheme_for()` are pure functions, unit-tested in
+  `tests/php/color-scheme-test.php` (dependency-free plain PHP, no PHPUnit; run
+  by `bin/package-check`),
 - changes to `playground/seed-content.php` (the importer),
 - new `bin/package-check` checks,
 - any future Interactivity API directive or tiny vanilla JavaScript (Phase 4 v2).

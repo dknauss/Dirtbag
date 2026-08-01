@@ -31,6 +31,31 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
+// Controls what the stubbed wp_get_global_styles() hands back, so the emitter
+// can be exercised across the shapes a real install produces.
+$GLOBALS['dirtbag_test_background'] = null;
+
+if ( ! function_exists( 'wp_get_global_styles' ) ) {
+	function wp_get_global_styles() { // phpcs:ignore
+		return $GLOBALS['dirtbag_test_background'];
+	}
+}
+if ( ! function_exists( 'sanitize_hex_color' ) ) {
+	// Mirrors core's implementation (wp-includes/formatting.php), including its
+	// asymmetric return: '' for the empty string, null for anything invalid.
+	function sanitize_hex_color( $color ) { // phpcs:ignore
+		if ( '' === $color ) {
+			return '';
+		}
+		return preg_match( '|^#([A-Fa-f0-9]{3}){1,2}$|', $color ) ? $color : null;
+	}
+}
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $text ) { // phpcs:ignore
+		return htmlspecialchars( $text, ENT_QUOTES );
+	}
+}
+
 require_once dirname( __DIR__, 2 ) . '/functions.php';
 
 $failures = 0;
@@ -146,6 +171,63 @@ dirtbag_assert_same(
 	false,
 	isset( $theme_json['styles']['color']['background'] ),
 	'default style declares no background'
+);
+
+// -- The emitter ---------------------------------------------------------
+
+/**
+ * Capture what dirtbag_head_color_meta() prints for a given global-styles value.
+ *
+ * @param mixed $background Value the stubbed wp_get_global_styles() returns.
+ * @return string Emitted markup.
+ */
+function dirtbag_capture_head_meta( $background ) {
+	$GLOBALS['dirtbag_test_background'] = $background;
+	ob_start();
+	dirtbag_head_color_meta();
+	return ob_get_clean();
+}
+
+dirtbag_assert_same(
+	"<meta name=\"color-scheme\" content=\"dark\" />\n<meta name=\"theme-color\" content=\"#000000\" />\n",
+	dirtbag_capture_head_meta( '#000000' ),
+	'emitter: terminal / amber-crt black background'
+);
+dirtbag_assert_same(
+	"<meta name=\"color-scheme\" content=\"dark\" />\n<meta name=\"theme-color\" content=\"#000099\" />\n",
+	dirtbag_capture_head_meta( '#000099' ),
+	'emitter: blueprint navy background'
+);
+dirtbag_assert_same(
+	"<meta name=\"color-scheme\" content=\"light\" />\n<meta name=\"theme-color\" content=\"#ffff00\" />\n",
+	dirtbag_capture_head_meta( '#ffff00' ),
+	'emitter: hi-vis yellow background'
+);
+
+// The critical guard. wp_get_global_styles() returns the ENTIRE styles array
+// when the requested path is missing, which is what Dirtbag's default style
+// produces — it declares no background at all. Without the is_string() check
+// this path reaches esc_attr() with an array and fatals every front-end page.
+dirtbag_assert_same(
+	'',
+	dirtbag_capture_head_meta(
+		array(
+			'blocks'     => array(),
+			'elements'   => array(),
+			'spacing'    => array(),
+			'typography' => array(),
+		)
+	),
+	'emitter: missing path returns whole styles array — emits nothing, does not fatal'
+);
+
+dirtbag_assert_same( '', dirtbag_capture_head_meta( null ), 'emitter: null emits nothing' );
+dirtbag_assert_same( '', dirtbag_capture_head_meta( '' ), 'emitter: empty string emits nothing' );
+dirtbag_assert_same( '', dirtbag_capture_head_meta( 'rgb(0,0,0)' ), 'emitter: rgb() emits nothing' );
+dirtbag_assert_same(
+	'',
+	dirtbag_capture_head_meta( 'var(--wp--preset--color--base)' ),
+	'emitter: unresolved var emits nothing'
 );
 
 // -- Result --------------------------------------------------------------
