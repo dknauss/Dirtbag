@@ -6,6 +6,18 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+### Added
+
+* Emit `color-scheme` and `theme-color` meta tags derived from the active style variation's background colour. WordPress core emits neither; without `color-scheme`, form controls and scrollbars render as light user-agent widgets on the dark variations (Terminal, Amber CRT, Blueprint). Derived from the resolved global styles rather than a variation slug, so the tags follow the site owner's own Site Editor customisations. The default Brutalist style declares no background and deliberately gets neither tag.
+* `docs/head-metadata.md` — who emits what in `<head>`: what core already provides a block theme, the two tags Dirtbag adds, and why meta description, Open Graph, and JSON-LD deliberately need a plugin.
+* Unit tests for the colour-scheme derivation (`tests/php/color-scheme-test.php`, dependency-free plain PHP, run by `bin/package-check`) and a per-style browser spec (`tests/styles/head-meta.spec.js`).
+* `bin/package-check` now requires `styles.color.background` in each style variation to be a literal hex colour, since a non-hex value would silently drop both meta tags.
+
+### Fixed
+
+* `playground/apply-style.php` now links the global-styles post it writes to the active theme, and refuses to report success unless that post is the one the front end reads. A `wp_global_styles` post is bound to a theme by a `wp_theme` term; core creates the post with `tax_input`, which `wp_insert_post()` applies only when the current user can assign terms — and WP-CLI runs with no current user. On a site with no global-styles post for the active theme yet, every invocation therefore created a fresh, untagged post that the front end's own lookup can never find: the helper printed success, the page never changed, and the per-style sweep scanned the default variation seven times over. Observed on the Studio site as 25 orphaned posts alongside the one working post created through the browser.
+* Repointed the WordPress Studio theme symlink, which referenced a stale path (`Developer/GitHub/dirtbag` rather than `Developer/GitHub/dknauss/dirtbag`). The per-style Playwright sweep had been running against whatever theme was active instead of Dirtbag.
+
 ## [0.1.17] - 2026-07-03
 
 ### Added

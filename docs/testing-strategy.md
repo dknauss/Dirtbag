@@ -1,8 +1,9 @@
 # Testing strategy
 
 Dirtbag is a deliberately small, mostly *declarative* block theme: `theme.json`,
-templates, template parts, patterns, and style variations. There is no
-`functions.php` and almost no imperative logic. That shapes how we test.
+templates, template parts, patterns, and style variations. `functions.php` exists
+but is thin — two render filters and the colour-scheme derivation — so there is
+very little imperative logic. That shapes how we test.
 
 ## Focus: accessibility and UX
 
@@ -71,6 +72,10 @@ and screen-reader spot checks. Checklist lives in `docs/backlog.md` (Release QA)
 ### 6. TDD — only the islands of real logic
 When actual logic is added, write the failing test first:
 
+- the colour-scheme derivation in `functions.php` — `dirtbag_relative_luminance()`
+  and `dirtbag_color_scheme_for()` are pure functions, unit-tested in
+  `tests/php/color-scheme-test.php` (dependency-free plain PHP, no PHPUnit; run
+  by `bin/package-check`),
 - changes to `playground/seed-content.php` (the importer),
 - new `bin/package-check` checks,
 - any future Interactivity API directive or tiny vanilla JavaScript (Phase 4 v2).
@@ -146,6 +151,12 @@ as the `e2e-styles` matrix job: Playground is in-memory with no persistent wp-cl
 each style gets its own boot and the variation is applied at boot via
 `tests/ci-style-blueprint.mjs` (which appends an `apply-style.php` step to the
 blueprint) rather than the sequential local loop.
+
+The applier verifies its own effect: it links the global-styles post to the active
+theme's `wp_theme` term (WP-CLI runs with no current user, so core's own `tax_input`
+is silently dropped) and exits non-zero unless the post it wrote is the one the front
+end's lookup returns. Without that, a failed activation is indistinguishable from a
+passing sweep — every spec would keep scanning whatever variation was already active.
 
 **Viewports** — run the keyboard/overlay specs at a mobile width (360×640) and a
 desktop width; add small-viewport screenshot review (240×320, 320×240, 360×640) to
