@@ -23,7 +23,7 @@ The script checks:
 - **Seed/demo content integrity** — reads `playground/seed-content.json` (the seed data, loaded by `seed-content.php`) and checks each post for malformed block delimiters, balanced block nesting, and reconcile artifacts (`core/post-data`, hardcoded theme slug, dev URLs).
 - **No `base64_decode`** in any pattern or Playground PHP file (WordPress.org Theme Check disallows it).
 - **Reconcile guardrails** across shipped block files (same artifacts), so a raw Site-Editor export cannot silently reintroduce them.
-- **i18n** — translation calls in `functions.php`, the patterns, and the Playground seeder use the `dirtbag` text domain. Covers the whole gettext family (`__`, `_e`, `_x`, `_n`, `_nx`, the `_noop` and `esc_*` variants), both quote styles, and a missing or non-literal domain. The matcher carries its own self-test, so a regression in it fails the check rather than passing silently.
+- **i18n** — every PHP file in the theme uses the `dirtbag` text domain. Files are discovered, not listed, so a new `inc/` helper is covered the day it is added. Covers the whole gettext family (`__`, `_e`, `_x`, `_n`, `_nx`, the `_noop`, `esc_*`, and `translate*` variants), `<?php` and `<?=` islands, both quote styles, and a missing or non-literal domain. The matcher carries its own self-test, so a regression in it fails the check rather than passing silently.
 
 ## Automated end-to-end and accessibility tests
 

@@ -241,22 +241,25 @@ print('Asset scan OK')
 # name, then split its arguments at paren depth 0 — one regex per shape rots.
 # Index of the text-domain argument, 0-based, per WordPress signature.
 domain_arg = {
-    '__': 1, '_e': 1,
+    '__': 1, '_e': 1, 'translate': 1,
     'esc_html__': 1, 'esc_html_e': 1, 'esc_attr__': 1, 'esc_attr_e': 1, 'esc_xml__': 1, 'esc_xml_e': 1,
     '_x': 2, '_ex': 2, 'esc_html_x': 2, 'esc_attr_x': 2, 'esc_xml_x': 2, '_n_noop': 2,
+    'translate_with_gettext_context': 2, 'translate_nooped_plural': 2,
     '_n': 3, '_nx_noop': 3,
     '_nx': 4,
 }
 # Longest name first so _n cannot shadow _n_noop.
 call_re = re.compile(r'(?<![A-Za-z0-9_$])(' + '|'.join(sorted(domain_arg, key=len, reverse=True)) + r')\s*\(')
 str_re = re.compile(r"""\A'((?:[^'\\]|\\.)*)'\Z|\A"((?:[^"\\]|\\.)*)"\Z""", re.S)
-# Only <?php ... ?> islands are PHP. Pattern files are mostly HTML, where '//'
-# in a URL and '#' in a hex colour are not comments.
-island_re = re.compile(r'<\?php\b(.*?)(?:\?>|\Z)', re.S)
+# Only PHP islands are PHP. Pattern files are mostly HTML, where '//' in a URL
+# and '#' in a hex colour are not comments. <?= is a translation site too.
+island_re = re.compile(r'<\?(?:php\b|=)(.*?)(?:\?>|\Z)', re.S)
 
-def _mask(src):
-    """Blank comments and string interiors, preserving length so offsets still
-    line up with the original. Lets us find call names without matching prose."""
+def _mask(src, strings=True):
+    """Blank comments — and, by default, string interiors — preserving length so
+    offsets line up with the original. Call names are found in the fully masked
+    text (so a call named in prose is not matched); arguments are parsed from the
+    comments-only mask, which drops interleaved comments but keeps literals."""
     out, i, n = list(src), 0, len(src)
     while i < n:
         ch = src[i]
@@ -264,15 +267,17 @@ def _mask(src):
             i += 1
             while i < n:
                 if src[i] == '\\':
-                    out[i] = ' '
-                    if i + 1 < n:
-                        out[i + 1] = ' '
+                    if strings:
+                        out[i] = ' '
+                        if i + 1 < n:
+                            out[i + 1] = ' '
                     i += 2
                     continue
                 if src[i] == ch:
                     i += 1
                     break
-                out[i] = ' '
+                if strings:
+                    out[i] = ' '
                 i += 1
             continue
         if src.startswith('/*', i):
@@ -333,18 +338,19 @@ def i18n_violations(text):
     hits = []
     for island in island_re.finditer(text):
         src, base = island.group(1), island.start(1)
-        masked = _mask(src)
+        masked = _mask(src)                  # find call names
+        code = _mask(src, strings=False)     # parse arguments
         for m in call_re.finditer(masked):
-            before = src[:m.start()].rstrip()
+            before = code[:m.start()].rstrip()
             if before.endswith('->') or before.endswith('::'):
                 continue  # method call that merely shares the name
-            parsed = _args(src, m.end() - 1)
+            parsed = _args(code, m.end() - 1)
             if parsed is None:
                 continue
             args, end = parsed
             idx = domain_arg[m.group(1)]
             line = text.count('\n', 0, base + m.start()) + 1
-            call = ' '.join(src[m.start():end].split())
+            call = ' '.join(code[m.start():end].split())
             if len(args) <= idx:
                 hits.append((line, call, 'text domain argument is missing'))
                 continue
@@ -362,7 +368,12 @@ for _src in ["<?php __( 'x', 'wrong' );", "<?php __( 'x' );", '<?php __( "x", "w
              "<?php esc_html_x( 'x', 'ctx', 'wrong' );", "<?php _ex( 'x', 'ctx', 'wrong' );",
              "<?php _n( 'a', 'b', $n, 'wrong' );", "<?php _n( 'a', 'b', $n );",
              "<?php _nx( 'a', 'b', $n, 'ctx', 'wrong' );", "<?php _n_noop( 'a', 'b' );",
-             "<?php __( 'x', DIRTBAG );", "<?php echo sprintf( __( 'x %s', 'wrong' ), $y );"]:
+             "<?php __( 'x', DIRTBAG );", "<?php echo sprintf( __( 'x %s', 'wrong' ), $y );",
+             "<?= esc_html__( 'x', 'wrong' ) ?>", "<?= _x( 'x', 'ctx', 'wrong' ) ?>",
+             "<?php translate( 'x', 'wrong' );",
+             "<?php translate_with_gettext_context( 'x', 'ctx', 'wrong' );",
+             "<?php translate_nooped_plural( $noop, 2, 'wrong' );",
+             "<?php _n( 'a', 'b', $n, /* why */ 'wrong' );"]:
     if not i18n_violations(_src):
         raise SystemExit(f'i18n self-test: matcher failed to flag {_src!r}')
 for _src in ["<?php __( 'x', 'dirtbag' );", '<?php __( "x", "dirtbag" );',
@@ -372,15 +383,27 @@ for _src in ["<?php __( 'x', 'dirtbag' );", '<?php __( "x", "dirtbag" );',
              "<?php __( 'it\\'s', 'dirtbag' );",
              "<?php $s = 'mentions _x( foo ) in a string'; // and _e( 'x', 'wrong' ) in a comment",
              "<?php /* _e( 'x', 'wrong' ) */ my__( 'x', 'wrong' ); $o->__( 'x', 'wrong' );",
-             "<a href='https://example.com/'>not php</a>"]:
+             "<a href='https://example.com/'>not php</a>",
+             "<?= esc_html__( 'x', 'dirtbag' ) ?>",
+             "<?php translate( 'x', 'dirtbag' );",
+             "<?php translate_with_gettext_context( 'x', 'ctx', 'dirtbag' );",
+             "<?php _n( 'a', 'b', $n, /* item count */ 'dirtbag' );",
+             "<?php _n( 'a', 'b', $n, // item count\n 'dirtbag' );",
+             "<?php _x( 'x', /* ctx */ 'ctx', 'dirtbag' );"]:
     _hits = i18n_violations(_src)
     if _hits:
         raise SystemExit(f'i18n self-test: matcher wrongly flagged {_src!r} ({_hits[0][2]})')
 
-php_files = [Path('functions.php'), *sorted(Path('patterns').glob('*.php')), *sorted(Path('playground').glob('*.php'))]
+# Discover every PHP file rather than naming locations: a future inc/ or
+# template-tags.php must not silently escape the check the way functions.php did.
+# playground/ is deliberately included — it does not ship, but its seed content
+# is user-facing. Only tooling/dev directories are skipped.
+i18n_skip_dirs = {'.git', '.github', '.githooks', '.planning', 'bin', 'docs', 'tests', 'node_modules'}
+php_files = sorted(p for p in root.rglob('*.php')
+                   if not any(part in i18n_skip_dirs for part in p.parts))
+if not php_files:
+    raise SystemExit('i18n: found no PHP files to check — discovery is broken')
 for p in php_files:
-    if not p.exists():
-        continue
     for line, call, reason in i18n_violations(p.read_text()):
         raise SystemExit(f'i18n: {p}:{line}: {reason} in {call!r}')
 print('i18n text domain OK')
