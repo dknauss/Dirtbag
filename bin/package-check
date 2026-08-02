@@ -296,5 +296,8 @@ echo "PHP syntax OK"
 if [[ -f tests/php/color-scheme-test.php ]]; then
   php tests/php/color-scheme-test.php
 fi
+if [[ -f tests/php/seed-diagnostics-test.php ]]; then
+  php tests/php/seed-diagnostics-test.php
+fi
 
 echo "All package checks passed."

@@ -8,6 +8,8 @@
  * @package Dirtbag
  */
 
+require_once __DIR__ . '/stderr.php';
+
 if ( ! function_exists( 'dirtbag_playground_seed_content' ) ) {
 	/**
 	 * Import demo content copied from the local Dirtbag Studio site.
@@ -96,7 +98,9 @@ if ( ! function_exists( 'dirtbag_playground_assert_user_identity' ) ) {
 	 * @param array $user    Seed user data.
 	 */
 	function dirtbag_playground_assert_user_identity( $user_id, $user ) {
-		for ( $attempt = 0; $attempt < 3; $attempt++ ) {
+		// Verify, write, then verify again: the loop used to end on a write, so a
+		// third attempt that actually worked was still reported as a failure.
+		for ( $attempt = 1; $attempt <= 3; $attempt++ ) {
 			clean_user_cache( $user_id );
 			$fresh = get_userdata( $user_id );
 			if ( $fresh
@@ -112,7 +116,28 @@ if ( ! function_exists( 'dirtbag_playground_assert_user_identity' ) ) {
 				)
 			);
 		}
-		error_log( 'dirtbag seed: user ' . $user_id . ' identity fields did not persist after retries.' );
+
+		clean_user_cache( $user_id );
+		$fresh = get_userdata( $user_id );
+		if ( $fresh
+			&& $fresh->display_name === $user['display_name']
+			&& $fresh->user_nicename === $user['user_nicename'] ) {
+			return;
+		}
+
+		// Reported through dirtbag_playground_stderr(), not error_log(): inside
+		// Playground the latter has not been observed reaching the CI logs, so
+		// this failure has been silent every time it fired.
+		dirtbag_playground_stderr(
+			sprintf(
+				'seed-users: user %d identity did not persist after 3 retries (display_name=%s user_nicename=%s, wanted %s/%s)',
+				$user_id,
+				$fresh ? $fresh->display_name : '(no user row)',
+				$fresh ? $fresh->user_nicename : '(no user row)',
+				$user['display_name'],
+				$user['user_nicename']
+			)
+		);
 	}
 }
 
@@ -154,13 +179,29 @@ if ( ! function_exists( 'dirtbag_playground_seed_media' ) ) {
 				continue;
 			}
 
+			// get_theme_file_path() resolves against the *active* theme. If the
+			// theme switch has not landed, this points into whatever else is
+			// active and the file is simply absent — so name the theme it
+			// resolved against, which is the difference between "media missing"
+			// and "wrong theme".
 			$source = get_theme_file_path( 'playground/media/' . $attachment['filename'] );
 			if ( ! file_exists( $source ) ) {
+				dirtbag_playground_stderr(
+					sprintf(
+						'seed-media: %s not found at %s (active stylesheet is %s)',
+						$attachment['filename'],
+						$source,
+						get_stylesheet()
+					)
+				);
 				continue;
 			}
 
 			$upload = wp_upload_bits( $attachment['filename'], null, file_get_contents( $source ) );
 			if ( ! empty( $upload['error'] ) ) {
+				dirtbag_playground_stderr(
+					sprintf( 'seed-media: %s upload failed: %s', $attachment['filename'], $upload['error'] )
+				);
 				continue;
 			}
 
@@ -178,6 +219,13 @@ if ( ! function_exists( 'dirtbag_playground_seed_media' ) ) {
 			);
 
 			if ( is_wp_error( $new_id ) || ! $new_id ) {
+				dirtbag_playground_stderr(
+					sprintf(
+						'seed-media: %s wp_insert_attachment failed: %s',
+						$attachment['filename'],
+						is_wp_error( $new_id ) ? $new_id->get_error_message() : 'no attachment ID returned'
+					)
+				);
 				continue;
 			}
 
@@ -250,6 +298,13 @@ if ( ! function_exists( 'dirtbag_playground_seed_posts' ) ) {
 			}
 
 			if ( is_wp_error( $new_id ) || ! $new_id ) {
+				dirtbag_playground_stderr(
+					sprintf(
+						'seed-posts: %s could not be written: %s',
+						isset( $post['post_name'] ) ? $post['post_name'] : '(no post_name)',
+						is_wp_error( $new_id ) ? $new_id->get_error_message() : 'no post ID returned'
+					)
+				);
 				continue;
 			}
 
@@ -273,8 +328,22 @@ if ( ! function_exists( 'dirtbag_playground_seed_posts' ) ) {
 				if ( ! empty( $post['terms']['post_tag'] ) ) {
 					wp_set_object_terms( $new_id, $post['terms']['post_tag'], 'post_tag', false );
 				}
-				if ( ! empty( $post['thumbnail_attachment_id'] ) && isset( $attachment_ids[ $post['thumbnail_attachment_id'] ] ) ) {
-					set_post_thumbnail( $new_id, $attachment_ids[ $post['thumbnail_attachment_id'] ] );
+				if ( ! empty( $post['thumbnail_attachment_id'] ) ) {
+					if ( isset( $attachment_ids[ $post['thumbnail_attachment_id'] ] ) ) {
+						set_post_thumbnail( $new_id, $attachment_ids[ $post['thumbnail_attachment_id'] ] );
+					} else {
+						// This is the step that turns a skipped attachment into a
+						// missing wp-post-image on the home page, which the CI boot
+						// probe waits for until it times out. Say so here rather
+						// than letting the guard swallow it.
+						dirtbag_playground_stderr(
+							sprintf(
+								'seed-posts: %s wanted thumbnail %s, but no attachment was seeded for it',
+								isset( $post['post_name'] ) ? $post['post_name'] : '(no post_name)',
+								$post['thumbnail_attachment_id']
+							)
+						);
+					}
 				}
 			}
 		}

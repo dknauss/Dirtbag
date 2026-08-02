@@ -17,38 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! function_exists( 'dirtbag_playground_stderr' ) ) {
-	/**
-	 * Report a diagnostic line, whichever SAPI this is running under.
-	 *
-	 * `STDERR` is defined only by the CLI SAPI. These scripts also run inside
-	 * WordPress Playground, which serves over a web SAPI where the constant does
-	 * not exist — so `fwrite( STDERR, ... )` is a fatal there.
-	 *
-	 * Every one of these calls sits on an error path, so the fatal replaced the
-	 * very message that would have explained the failure: a boot that could not
-	 * find its global-styles post died as `Undefined constant "STDERR"` instead of
-	 * saying so, which is how it stayed unexplained through several CI rounds.
-	 *
-	 * The `php://stderr` wrapper works under both SAPIs. `error_log()` is the
-	 * fallback and lands in the Playground server log that CI captures.
-	 *
-	 * @param string $message Message to report. A trailing newline is normalised.
-	 * @return void
-	 */
-	function dirtbag_playground_stderr( $message ) {
-		$message = rtrim( (string) $message, "\n" );
-		// Suppressed: a failure here must fall through to error_log(), not warn
-		// into the response body (WP_DEBUG_DISPLAY is on in the CI blueprint).
-		$stream = @fopen( 'php://stderr', 'w' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		if ( false !== $stream ) {
-			fwrite( $stream, $message . "\n" );
-			fclose( $stream );
-			return;
-		}
-		error_log( $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-	}
-}
+require_once __DIR__ . '/stderr.php';
 
 if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 	/**
