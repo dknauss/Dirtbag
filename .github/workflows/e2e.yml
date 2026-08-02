@@ -80,9 +80,20 @@ jobs:
             # nicename survived: a flaky boot can empty user identity fields,
             # which later fails the axe link-name gate as a nameless author
             # link. Bail early if the server died.
+            #
+            # Record each condition separately. Collapsed into one `if`, a
+            # timeout could not say whether the theme never installed (a
+            # git:directory fetch problem) or installed but never seeded (a
+            # runPHP/worker problem) — the two have different fixes.
+            : > /tmp/pg.probe
             for i in $(seq 1 60); do
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image \
-                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then return 0; fi
+              theme_ok=no; image_ok=no; author_ok=no
+              if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
+              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then image_ok=yes; fi
+              if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
+              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s\n' \
+                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" > /tmp/pg.probe
+              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ]; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -91,10 +102,16 @@ jobs:
           for attempt in 1 2 3; do
             echo "::group::Playground boot attempt $attempt"
             if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
-            echo "boot attempt $attempt failed (EBADF/timeout); retrying" >&2
+            echo "boot attempt $attempt failed; retrying" >&2
             # Say why. Without this the only signal is "failed".
             echo "--- diagnostics for attempt $attempt ---" >&2
             echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
+            echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
+            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
+            # into the response body — so capture the body, not just the status.
+            # `curl -f` suppresses output on a 5xx, so this one must omit it.
+            echo "--- response body (first 60 lines) ---" >&2
+            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
@@ -179,9 +196,20 @@ jobs:
             # nicename survived: a flaky boot can empty user identity fields,
             # which later fails the axe link-name gate as a nameless author
             # link. Bail early if the server died.
+            #
+            # Record each condition separately. Collapsed into one `if`, a
+            # timeout could not say whether the theme never installed (a
+            # git:directory fetch problem) or installed but never seeded (a
+            # runPHP/worker problem) — the two have different fixes.
+            : > /tmp/pg.probe
             for i in $(seq 1 60); do
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image \
-                && curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then return 0; fi
+              theme_ok=no; image_ok=no; author_ok=no
+              if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
+              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then image_ok=yes; fi
+              if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
+              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s\n' \
+                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" > /tmp/pg.probe
+              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ]; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -190,10 +218,16 @@ jobs:
           for attempt in 1 2 3; do
             echo "::group::Playground boot attempt $attempt"
             if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
-            echo "boot attempt $attempt failed (EBADF/timeout); retrying" >&2
+            echo "boot attempt $attempt failed; retrying" >&2
             # Say why. Without this the only signal is "failed".
             echo "--- diagnostics for attempt $attempt ---" >&2
             echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
+            echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
+            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
+            # into the response body — so capture the body, not just the status.
+            # `curl -f` suppresses output on a 5xx, so this one must omit it.
+            echo "--- response body (first 60 lines) ---" >&2
+            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
