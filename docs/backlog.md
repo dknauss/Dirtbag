@@ -102,3 +102,5 @@ Not yet verified in a real browser; looked OK on a quick manual skim.
   - Open questions: whether Simply Static's loopback crawl works against `wp-playground/cli`'s built-in server in CI, and whether to trigger on tag/release only or also on `main`.
 - **Replace dynamic search with a static index**
   - Site search returns nothing on the static host (no backend). Consider a client-side index such as Pagefind, built as a post-crawl step.
+
+<!-- temporary: verifying the Codex integration is disabled; this PR will be closed unmerged -->
