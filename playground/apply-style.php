@@ -24,7 +24,7 @@ $slug = isset( $args[0] ) ? trim( (string) $args[0] ) : 'default';
 
 $post_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 if ( ! $post_id ) {
-	fwrite( STDERR, "apply-style: no user global styles post for the active theme\n" );
+	dirtbag_playground_stderr( "apply-style: no user global styles post for the active theme\n" );
 	exit( 1 );
 }
 
@@ -41,13 +41,13 @@ if ( '' === $slug || 'default' === $slug ) {
 } else {
 	$file = get_theme_file_path( "styles/{$slug}.json" );
 	if ( ! is_readable( $file ) ) {
-		fwrite( STDERR, "apply-style: styles/{$slug}.json not found or unreadable\n" );
+		dirtbag_playground_stderr( "apply-style: styles/{$slug}.json not found or unreadable\n" );
 		exit( 1 );
 	}
 
 	$variation = json_decode( (string) file_get_contents( $file ), true );
 	if ( ! is_array( $variation ) ) {
-		fwrite( STDERR, "apply-style: styles/{$slug}.json is not valid JSON\n" );
+		dirtbag_playground_stderr( "apply-style: styles/{$slug}.json is not valid JSON\n" );
 		exit( 1 );
 	}
 
@@ -68,7 +68,7 @@ $result = wp_update_post(
 );
 
 if ( is_wp_error( $result ) ) {
-	fwrite( STDERR, 'apply-style: ' . $result->get_error_message() . "\n" );
+	dirtbag_playground_stderr( 'apply-style: ' . $result->get_error_message() . "\n" );
 	exit( 1 );
 }
 

@@ -44,7 +44,7 @@ const DIRTBAG_USER_CSS_SENTINEL = 'body { --dirtbag-user-css: 1; }';
 $slug = isset( $args[0] ) ? trim( (string) $args[0] ) : 'default';
 $mode = isset( $args[1] ) ? trim( (string) $args[1] ) : 'set';
 if ( ! in_array( $mode, array( 'set', 'clear', 'empty' ), true ) ) {
-	fwrite( STDERR, "apply-additional-css: mode must be one of set|clear|empty, got '{$mode}'\n" );
+	dirtbag_playground_stderr( "apply-additional-css: mode must be one of set|clear|empty, got '{$mode}'\n" );
 	exit( 1 );
 }
 
@@ -67,18 +67,18 @@ if ( ! in_array( $mode, array( 'set', 'clear', 'empty' ), true ) ) {
  */
 $admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ) );
 if ( empty( $admins ) ) {
-	fwrite( STDERR, "apply-additional-css: no administrator to write global styles as\n" );
+	dirtbag_playground_stderr( "apply-additional-css: no administrator to write global styles as\n" );
 	exit( 1 );
 }
 wp_set_current_user( (int) $admins[0] );
 if ( ! current_user_can( 'edit_css' ) ) {
-	fwrite( STDERR, "apply-additional-css: user {$admins[0]} cannot edit_css; styles.css would be stripped on save\n" );
+	dirtbag_playground_stderr( "apply-additional-css: user {$admins[0]} cannot edit_css; styles.css would be stripped on save\n" );
 	exit( 1 );
 }
 
 $post_id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 if ( ! $post_id ) {
-	fwrite( STDERR, "apply-additional-css: no user global styles post for the active theme\n" );
+	dirtbag_playground_stderr( "apply-additional-css: no user global styles post for the active theme\n" );
 	exit( 1 );
 }
 
@@ -90,13 +90,13 @@ $styles   = array();
 if ( '' !== $slug && 'default' !== $slug ) {
 	$file = get_theme_file_path( "styles/{$slug}.json" );
 	if ( ! is_readable( $file ) ) {
-		fwrite( STDERR, "apply-additional-css: styles/{$slug}.json not found or unreadable\n" );
+		dirtbag_playground_stderr( "apply-additional-css: styles/{$slug}.json not found or unreadable\n" );
 		exit( 1 );
 	}
 
 	$variation = json_decode( (string) file_get_contents( $file ), true );
 	if ( ! is_array( $variation ) ) {
-		fwrite( STDERR, "apply-additional-css: styles/{$slug}.json is not valid JSON\n" );
+		dirtbag_playground_stderr( "apply-additional-css: styles/{$slug}.json is not valid JSON\n" );
 		exit( 1 );
 	}
 
@@ -126,7 +126,7 @@ $result = wp_update_post(
 );
 
 if ( is_wp_error( $result ) ) {
-	fwrite( STDERR, 'apply-additional-css: ' . $result->get_error_message() . "\n" );
+	dirtbag_playground_stderr( 'apply-additional-css: ' . $result->get_error_message() . "\n" );
 	exit( 1 );
 }
 
@@ -138,11 +138,11 @@ clean_post_cache( $post_id );
 $stored     = json_decode( (string) get_post( $post_id )->post_content, true );
 $key_stored = is_array( $stored ) && isset( $stored['styles'] ) && array_key_exists( 'css', (array) $stored['styles'] );
 if ( 'clear' !== $mode && ! $key_stored ) {
-	fwrite( STDERR, "apply-additional-css: styles.css was stripped on save (needs a user with 'edit_css')\n" );
+	dirtbag_playground_stderr( "apply-additional-css: styles.css was stripped on save (needs a user with 'edit_css')\n" );
 	exit( 1 );
 }
 if ( 'clear' === $mode && $key_stored ) {
-	fwrite( STDERR, "apply-additional-css: styles.css survived a clear\n" );
+	dirtbag_playground_stderr( "apply-additional-css: styles.css survived a clear\n" );
 	exit( 1 );
 }
 

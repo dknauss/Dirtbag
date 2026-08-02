@@ -17,6 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/stderr.php';
+
 if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 	/**
 	 * Bind a global-styles post to the active theme.
@@ -45,7 +47,7 @@ if ( ! function_exists( 'dirtbag_link_global_styles_post_to_theme' ) ) {
 		if ( is_wp_error( $terms ) || ! in_array( $stylesheet, $terms, true ) ) {
 			$tagged = wp_set_object_terms( $post_id, $stylesheet, 'wp_theme' );
 			if ( is_wp_error( $tagged ) ) {
-				fwrite( STDERR, "{$label}: could not link post {$post_id} to theme '{$stylesheet}': " . $tagged->get_error_message() . "\n" );
+				dirtbag_playground_stderr( "{$label}: could not link post {$post_id} to theme '{$stylesheet}': " . $tagged->get_error_message() . "\n" );
 				exit( 1 );
 			}
 		}
@@ -75,8 +77,8 @@ if ( ! function_exists( 'dirtbag_assert_global_styles_post_is_live' ) ) {
 		$live_id    = isset( $live['ID'] ) ? (int) $live['ID'] : 0;
 		if ( $live_id !== (int) $post_id ) {
 			$reads = $live_id ? "post {$live_id}" : 'no post';
-			fwrite( STDERR, "{$label}: wrote post {$post_id}, but the front end reads {$reads} for theme '{$stylesheet}'\n" );
-			fwrite( STDERR, "{$label}: what was written would not render — refusing to report success\n" );
+			dirtbag_playground_stderr( "{$label}: wrote post {$post_id}, but the front end reads {$reads} for theme '{$stylesheet}'\n" );
+			dirtbag_playground_stderr( "{$label}: what was written would not render — refusing to report success\n" );
 			exit( 1 );
 		}
 	}
