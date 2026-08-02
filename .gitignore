@@ -16,8 +16,11 @@
 .DS_Store
 
 # Dev-only test harness artifacts (the tests themselves are committed).
-node_modules/
-tests/node_modules/
+# No trailing slash on node_modules: agent worktrees under .claude/worktrees/
+# symlink it back to the primary checkout, and git treats a symlink as a file,
+# so a directory-only pattern leaves it showing up as untracked in every worktree.
+node_modules
+tests/node_modules
 tests/test-results/
 tests/playwright-report/
 tests/blueprint.ci.json
