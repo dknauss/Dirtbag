@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 0.1.17
+Stable tag: 0.1.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: full-site-editing, one-column, block-patterns, style-variations, translation-ready, microformats, blog
@@ -40,6 +40,12 @@ Open Appearance > Editor > Styles and choose a style variation.
 The official WordPress.org listing is https://wordpress.org/themes/dirtbag/. For site-specific help, use https://wordpress.org/support/theme/dirtbag/.
 
 == Changelog ==
+
+= 0.1.18 =
+* Add active-style colour metadata so dark variations render browser UI with the right colour scheme.
+* Preserve the theme's root CSS when Site Editor Additional CSS is added or cleared.
+* Add a print stylesheet that keeps every variation legible on paper and removes non-content chrome.
+* Harden Playground style switching and CI startup so per-variation tests exercise the intended style reliably.
 
 = 0.1.17 =
 * Add the official WordPress.org theme listing, support forum, and GitHub Sponsors donation link to the readme. Documentation-only release housekeeping after the initial directory acceptance.
