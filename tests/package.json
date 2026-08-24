@@ -10,6 +10,7 @@
     "test:styles:axe": "./axe-styles.sh a11y-styles",
     "test:styles:truck": "./axe-styles.sh truck-icon",
     "test:styles:head-meta": "./axe-styles.sh head-meta",
+    "test:styles:print": "./axe-styles.sh print",
     "test:styles:screenshots": "./axe-styles.sh screenshots",
     "test:styles:sticking": "playwright test --config playwright.styles.config.js sticking --workers=1",
     "test:styles:additional-css": "playwright test --config playwright.styles.config.js additional-css --workers=1",

@@ -65,6 +65,12 @@ Planned checks and improvements for future WordPress.org releases, static-demo r
   - Define persistence, privacy, accessibility, keyboard, and screen-reader behaviour before adding any public template surface.
   - Avoid app-like machinery in the theme; use a companion plugin if saving or private dashboard behaviour is needed.
 
+- **`<meta name="text-scale" content="scale">`**
+  - Opts the page in to the operating system's text-size setting on mobile, which browsers otherwise ignore for most content. Presentational, so it is theme territory in the same way `color-scheme` and `theme-color` are (see [head-metadata.md](head-metadata.md)) — it would sit next to them in `dirtbag_head_color_meta()`, or in a sibling function.
+  - From Manuel Matuzović's [HTML boilerplate for 2026](https://matuzo.at/blog/2026/html-boilerplate), which recommends it *with* a warning to test layouts thoroughly first. A theme whose whole premise is legibility should honour an explicit "make text bigger" request, so the reasons to want it and the reasons to be careful are the same reasons.
+  - **Blocked on a device check, not on code.** OS text scaling cannot be emulated in the Playwright harness, so tier 1 cannot verify this — it needs a real phone at several scale steps, watching the masthead, the navigation overlay, and the front-page column grid (`.front-grid`, whose subgrid rule is width-gated at 782px).
+  - Check current browser support before spending the device time; it was new when the article was published.
+
 - **Amber/orange truck icon on Terminal and Hi-Vis**
   - Try the amber/orange `truckIconFilter` (the value Amber CRT and Blueprint already use) on the **Terminal** and **Hi-Vis** styles. It looked good in passing. This only affects the in-page header logo; the browser-tab favicon is decoupled (opaque site icon) and is unaffected. Scope is tiny: edit `truckIconFilter` in `styles/terminal.json` (currently green) and `styles/hi-vis.json` (currently `none`, i.e. dark).
   - **Terminal (amber truck on black)**

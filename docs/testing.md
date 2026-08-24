@@ -52,6 +52,7 @@ Detect what the session can do and pick the lowest tier (the Dirtbag layer under
    - per-style a11y / axe: `cd tests && ./axe-styles.sh` (or `npm run test:styles`)
    - truck-icon filter per style: `tests/styles/truck-icon.spec.js`
    - in-session A→B→A style-sticking guard: `tests/styles/sticking.spec.js` — **mutates the live site**; run it *outside* the per-style sweep (it shares the global-styles post)
+   - per-style print stylesheet: `tests/styles/print.spec.js` (`npm run test:styles:print`) — see [print-styles.md](print-styles.md)
    - per-style front-page screenshots → `tests/screenshots/<slug>.png`: `tests/styles/screenshots.spec.js`
 
    The command sandbox blocks `localhost`; run unsandboxed or via a browser MCP.
