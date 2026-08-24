@@ -76,17 +76,29 @@ jobs:
             # failure is unattributable.
             npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
-            # Ready only when the homepage renders the seeded featured image (a
-            # bare 200 can precede the seed import) AND the seeded author's
-            # nicename survived: a flaky boot can empty user identity fields,
-            # which later fails the axe link-name gate as a nameless author
-            # link. Bail early if the server died.
+            # Do not send requests while the blueprint is installing and
+            # seeding WordPress. Those reads race SQLite writes and can leave an
+            # otherwise-live server returning "Database Error". Wait for the
+            # CLI's own ready signal first; bail early if the server dies.
+            : > /tmp/pg.probe
+            cli_ready=no
+            for i in $(seq 1 60); do
+              if grep -q 'Ready!' /tmp/pg.log; then cli_ready=yes; break; fi
+              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
+              printf 'after %ss: cli-ready=no\n' "$(( i * 2 ))" > /tmp/pg.probe
+              sleep 2
+            done
+            [ "$cli_ready" = yes ] || return 1
+
+            # Ready only when the homepage renders the seeded featured image
+            # AND the seeded author's nicename survived: a flaky boot can empty
+            # user identity fields, which later fails the axe link-name gate as
+            # a nameless author link.
             #
             # Record each condition separately. Collapsed into one `if`, a
             # timeout could not say whether the theme never installed (a
             # git:directory fetch problem) or installed but never seeded (a
             # runPHP/worker problem) — the two have different fixes.
-            : > /tmp/pg.probe
             for i in $(seq 1 60); do
               theme_ok=no; image_ok=no; author_ok=no
               if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
@@ -193,17 +205,29 @@ jobs:
             # failure is unattributable.
             npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
-            # Ready only when the homepage renders the seeded featured image (a
-            # bare 200 can precede the seed import) AND the seeded author's
-            # nicename survived: a flaky boot can empty user identity fields,
-            # which later fails the axe link-name gate as a nameless author
-            # link. Bail early if the server died.
+            # Do not send requests while the blueprint is installing and
+            # seeding WordPress. Those reads race SQLite writes and can leave an
+            # otherwise-live server returning "Database Error". Wait for the
+            # CLI's own ready signal first; bail early if the server dies.
+            : > /tmp/pg.probe
+            cli_ready=no
+            for i in $(seq 1 60); do
+              if grep -q 'Ready!' /tmp/pg.log; then cli_ready=yes; break; fi
+              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
+              printf 'after %ss: cli-ready=no\n' "$(( i * 2 ))" > /tmp/pg.probe
+              sleep 2
+            done
+            [ "$cli_ready" = yes ] || return 1
+
+            # Ready only when the homepage renders the seeded featured image
+            # AND the seeded author's nicename survived: a flaky boot can empty
+            # user identity fields, which later fails the axe link-name gate as
+            # a nameless author link.
             #
             # Record each condition separately. Collapsed into one `if`, a
             # timeout could not say whether the theme never installed (a
             # git:directory fetch problem) or installed but never seeded (a
             # runPHP/worker problem) — the two have different fixes.
-            : > /tmp/pg.probe
             for i in $(seq 1 60); do
               theme_ok=no; image_ok=no; author_ok=no
               if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
