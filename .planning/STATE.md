@@ -8,26 +8,18 @@ See: `.planning/PROJECT.md`.
 
 **Core value:** A Dirtbag site must remain readable, navigable, and understandable with WordPress core blocks, native browser behaviour, and minimal theme machinery.
 
-**Current focus:** Post-0.1.17 maintenance and release hardening. Phase 7 — Educational build remains prepped and **on hold** pending go-ahead; see [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md).
+**Current focus:** Post-0.1.18 maintenance. Phase 7 — Educational build remains prepped and **on hold** pending go-ahead; see [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md).
 
 ## Current Status
 
-- **Published and released.** Dirtbag is accepted in the WordPress.org theme directory. The current tagged release and WordPress readme stable tag are **0.1.17** (`v0.1.17`, 2026-07-03).
-- **Unreleased work accumulated.** `main` is 14 commits ahead of `v0.1.17`. The unreleased changelog covers active-style head metadata, protection for the theme's root CSS when users add Additional CSS, Playground/style-application diagnostics and fixes, and print styles with per-variation coverage.
+- **Published and released.** The current GitHub release and WordPress readme stable tag are **0.1.18** (`v0.1.18`, 2026-08-23). It ships active-style head metadata, protection for the theme's root CSS when users add Additional CSS, hardened Playground/style-application diagnostics, and print styles with per-variation coverage.
 - **Static gate is green.** `bin/package-check` passed locally on 2026-08-23, including package hygiene, JSON and block integrity, i18n, PHP syntax, 36 colour-scheme assertions, and 9 seed-diagnostics assertions.
-- **Browser coverage is green on the CI fix.** The 2026-08-23 `main` E2E run passed the main suite and six style legs; the Minimalist leg hit an SQLite `Database Error` before Playwright could run, and an isolated rerun failed the same way on all three boot attempts. PR #131 now waits for Playground's own ready signal before the readiness probes can race its SQLite seed writes, and pins six request workers because the CLI warns that its three-worker default on GitHub's four-CPU runners increases file-lock deadlock risk. Its first complete GitHub run passed the main E2E suite and all seven style legs; local confirmation passed all 56 main tests and all 28 applicable Minimalist tests (4 self-switching tests intentionally skipped). Continue tracking residual reliability work in GitHub issues #99 and #128.
+- **Browser coverage is green.** PR #133 passed the main E2E suite and all seven Playground style legs. Local WordPress Studio release QA passed 196 tests (28 across each of seven variations), including the Studio-only truck-icon custom-property checks. Continue tracking residual reliability work in GitHub issues #99 and #128.
 - **Phase 7 (Educational build) is HELD.** No `docs/learn/` lesson content has been written. The build order and guardrails remain in [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md) and the roadmap.
 
 ## Release Posture
 
-The unreleased changes are a reasonable **0.1.18 candidate**, but not ready to publish yet. Before release:
-
-1. Build the release zip and run a fresh Theme Check against the unreleased package.
-2. Perform the documented manual browser/style-switching QA.
-3. Move the Unreleased changelog into a dated 0.1.18 section and bump `style.css`, `readme.txt`, and POT metadata together.
-4. Refresh the pinned Playground demo bundle and verify the release asset.
-
-Do not tag or upload 0.1.18 until those gates are complete.
+Version **0.1.18 is released**. The exact 0.1.18 distribution ZIP passed all 6,660 Theme Check tests with only the two documented INFO notes. Manual small-viewport, mobile-navigation, Site Editor, and style-variation QA passed. The GitHub release contains verified clean-theme and Playground-demo ZIPs, and the pinned `playground-demo` asset now serves the same 0.1.18 demo bundle.
 
 ## Last Known Checks
 
@@ -36,7 +28,10 @@ Do not tag or upload 0.1.18 until those gates are complete.
 - PR #131 GitHub Actions runs `32681999331` and `32682180930`: main E2E and all seven per-style legs green twice.
 - Post-merge `main` run `32682338552`: main E2E and all seven per-style legs green.
 - Local confirmation with the revised harness: 56 main tests passed; exact Minimalist blueprint passed 28 tests with 4 self-switching tests intentionally skipped.
-- Latest completed Theme Check evidence remains the 0.1.17 release; the unreleased package still needs a fresh pass.
+- PR #133 run `32683712592`: main E2E and all seven per-style legs green; both package-check runs green.
+- Local WordPress Studio 0.1.18 release site: all 196 per-style tests passed, including the local-only truck-icon assertions.
+- Theme Check on the exact 0.1.18 release ZIP: 6,660 tests passed; only the documented hard-coded sample-link and single-text-domain INFO notes remain.
+- Release run `32684075335`: clean theme ZIP, Playground demo ZIP, and GitHub release published successfully. Downloaded asset digests match GitHub, and the pinned Playground bundle reports version 0.1.18.
 
 ## Accumulated Context
 
