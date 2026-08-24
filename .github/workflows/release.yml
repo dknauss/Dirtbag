@@ -62,7 +62,7 @@ jobs:
           unzip -tq dirtbag-playground-demo.zip
 
       - name: Create GitHub Release + attach ZIPs
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             dirtbag.zip
