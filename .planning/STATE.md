@@ -1,27 +1,42 @@
 # Dirtbag State
 
-_Last refreshed: 2026-06-20._
+_Last refreshed: 2026-08-23._
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-06-18)
+See: `.planning/PROJECT.md`.
 
 **Core value:** A Dirtbag site must remain readable, navigable, and understandable with WordPress core blocks, native browser behaviour, and minimal theme machinery.
-**Current focus:** Phase 6 — Educational aspects (research/planning) is complete and merged (PR #28). The build is tracked as **Phase 7 — Educational build**, prepped and **on hold** pending go-ahead — see [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md).
+
+**Current focus:** Post-0.1.17 maintenance and release hardening. Phase 7 — Educational build remains prepped and **on hold** pending go-ahead; see [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md).
 
 ## Current Status
 
-- **Published and released.** Submitted to the WordPress.org theme directory at 0.1.8; current release is **0.1.9** (git tag `v0.1.9` + GitHub release, latest). The stable Playground blueprint is pinned to 0.1.9 (PR #53).
-- **CI-gated.** Every PR runs `package-check`, `e2e`, and the per-style `e2e-styles` axe sweep (7 style variations); `bin/package-check` runs locally. Playground stable/main blueprints are live.
-- **WordPress.org review notes triaged.** The 0.1.9 upload scan (Theme Check) has no required or warning notes; the remaining Recommended/Info notes are block-theme false positives or intentional — documented in [`docs/theme-review.md`](../docs/theme-review.md).
-- **Upstream contribution.** A Gallery caption accessibility repro is published under `docs/repro/` and linked from Gutenberg [#56587](https://github.com/WordPress/gutenberg/issues/56587) (PR #52). The e2e seed-readiness flake fix + fail-loud gate merged (PR #54).
-- **Phase 7 (Educational build) is prepped but HELD** — no lesson content written yet. Build order and guardrails in [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md), now also on the roadmap as Phase 7.
+- **Published and released.** Dirtbag is accepted in the WordPress.org theme directory. The current tagged release and WordPress readme stable tag are **0.1.17** (`v0.1.17`, 2026-07-03).
+- **Unreleased work accumulated.** `main` is 14 commits ahead of `v0.1.17`. The unreleased changelog covers active-style head metadata, protection for the theme's root CSS when users add Additional CSS, Playground/style-application diagnostics and fixes, and print styles with per-variation coverage.
+- **Static gate is green.** `bin/package-check` passed locally on 2026-08-23, including package hygiene, JSON and block integrity, i18n, PHP syntax, 36 colour-scheme assertions, and 9 seed-diagnostics assertions.
+- **Browser coverage is green on the CI fix.** The 2026-08-23 `main` E2E run passed the main suite and six style legs; the Minimalist leg hit an SQLite `Database Error` before Playwright could run, and an isolated rerun failed the same way on all three boot attempts. PR #131 now waits for Playground's own ready signal before the readiness probes can race its SQLite seed writes, and pins six request workers because the CLI warns that its three-worker default on GitHub's four-CPU runners increases file-lock deadlock risk. Its first complete GitHub run passed the main E2E suite and all seven style legs; local confirmation passed all 56 main tests and all 28 applicable Minimalist tests (4 self-switching tests intentionally skipped). Continue tracking residual reliability work in GitHub issues #99 and #128.
+- **Phase 7 (Educational build) is HELD.** No `docs/learn/` lesson content has been written. The build order and guardrails remain in [`phase-6/BUILD-KICKOFF.md`](phase-6/BUILD-KICKOFF.md) and the roadmap.
 
-## Last Known Good Checks
+## Release Posture
 
-- `bin/package-check` green (required files, release-archive exclusions, JSON, screenshot dimensions, block nesting, package hygiene, image inventory, i18n text domain, PHP syntax).
-- `e2e` and `e2e-styles` Playwright + axe suites green on `main`.
-- Theme Check on the 0.1.9 release zip: no required/warning notes.
+The unreleased changes are a reasonable **0.1.18 candidate**, but not ready to publish yet. Before release:
+
+1. Merge PR #131 and confirm its green E2E result holds on `main`.
+2. Build the release zip and run a fresh Theme Check against the unreleased package.
+3. Perform the documented manual browser/style-switching QA.
+4. Move the Unreleased changelog into a dated 0.1.18 section and bump `style.css`, `readme.txt`, and POT metadata together.
+5. Refresh the pinned Playground demo bundle and verify the release asset.
+
+Do not tag or upload 0.1.18 until those gates are complete.
+
+## Last Known Checks
+
+- `bin/package-check`: green locally on 2026-08-23.
+- Main Playwright smoke + accessibility suite: green in GitHub Actions run `32679923630`.
+- PR #131 GitHub Actions run `32681999331`: main E2E and all seven per-style legs green.
+- Local confirmation with the revised harness: 56 main tests passed; exact Minimalist blueprint passed 28 tests with 4 self-switching tests intentionally skipped.
+- Latest completed Theme Check evidence remains the 0.1.17 release; the unreleased package still needs a fresh pass.
 
 ## Accumulated Context
 
@@ -35,6 +50,10 @@ All five research/planning deliverables are done and merged (PR #28). Build is h
 - `.planning/phase-6/LEARNING-PATH-STRUCTURE.md` — the "Garage" path: four stages (On the lot → Under the hood → The honest machine → Build your own), every LO assigned a home + disposition (reframe/annotate/point-at/write-new), a `docs/learn/` tree, and a build order.
 - `.planning/phase-6/WRITING-GUIDELINES.md` — plain-language + accessibility rules tied to `readability-check` (nine categories, Flesch 60–70 target for path prose), per-persona altitude map, canonical-terms table, and the authoring gate.
 
-### Pending Todos
+### Open Work Snapshot
 
-- 1 pending todo: `.planning/todos/pending/2026-06-18-private-note-tool.md`
+- GitHub: 10 open issues and 4 open pull requests as of 2026-08-23.
+- Local planning todos:
+  - `.planning/todos/pending/2026-06-18-private-note-tool.md`
+  - `.planning/todos/pending/2026-06-23-wptexturize-opening-tag-core-solution.md`
+  - `.planning/todos/pending/2026-06-23-wptexturize-primes-limits.md`
