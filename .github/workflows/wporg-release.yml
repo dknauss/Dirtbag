@@ -77,8 +77,12 @@ jobs:
       - name: Require WordPress.org credentials
         if: ${{ !inputs.dry_run }}
         run: |
+          SVN_USERNAME="$(printf '%s' "$SVN_USERNAME" | tr -d '\r\n')"
+          SVN_PASSWORD="$(printf '%s' "$SVN_PASSWORD" | tr -d '\r\n')"
           test -n "$SVN_USERNAME" || { echo "Missing WPORG_USERNAME repository secret." >&2; exit 1; }
           test -n "$SVN_PASSWORD" || { echo "Missing WP_ORG_PASSWORD repository secret." >&2; exit 1; }
+          printf 'SVN_USERNAME=%s\n' "$SVN_USERNAME" >> "$GITHUB_ENV"
+          printf 'SVN_PASSWORD=%s\n' "$SVN_PASSWORD" >> "$GITHUB_ENV"
 
       - name: Commit the release to WordPress.org SVN
         if: ${{ !inputs.dry_run }}
