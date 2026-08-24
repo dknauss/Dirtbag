@@ -22,11 +22,10 @@ See: `.planning/PROJECT.md`.
 
 The unreleased changes are a reasonable **0.1.18 candidate**, but not ready to publish yet. Before release:
 
-1. Merge PR #131 and confirm its green E2E result holds on `main`.
-2. Build the release zip and run a fresh Theme Check against the unreleased package.
-3. Perform the documented manual browser/style-switching QA.
-4. Move the Unreleased changelog into a dated 0.1.18 section and bump `style.css`, `readme.txt`, and POT metadata together.
-5. Refresh the pinned Playground demo bundle and verify the release asset.
+1. Build the release zip and run a fresh Theme Check against the unreleased package.
+2. Perform the documented manual browser/style-switching QA.
+3. Move the Unreleased changelog into a dated 0.1.18 section and bump `style.css`, `readme.txt`, and POT metadata together.
+4. Refresh the pinned Playground demo bundle and verify the release asset.
 
 Do not tag or upload 0.1.18 until those gates are complete.
 
@@ -34,7 +33,8 @@ Do not tag or upload 0.1.18 until those gates are complete.
 
 - `bin/package-check`: green locally on 2026-08-23.
 - Main Playwright smoke + accessibility suite: green in GitHub Actions run `32679923630`.
-- PR #131 GitHub Actions run `32681999331`: main E2E and all seven per-style legs green.
+- PR #131 GitHub Actions runs `32681999331` and `32682180930`: main E2E and all seven per-style legs green twice.
+- Post-merge `main` run `32682338552`: main E2E and all seven per-style legs green.
 - Local confirmation with the revised harness: 56 main tests passed; exact Minimalist blueprint passed 28 tests with 4 self-switching tests intentionally skipped.
 - Latest completed Theme Check evidence remains the 0.1.17 release; the unreleased package still needs a fresh pass.
 
