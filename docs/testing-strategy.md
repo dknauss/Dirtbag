@@ -138,6 +138,39 @@ Interactivity API and resolved to null). Fixed by disabling the lightbox on that
 decorative block (`"lightbox":{"enabled":false}` in `patterns/h-card-profile.php` and
 the seeded About page) — a 96px icon should not be enlargeable.
 
+`region` stays gated for a second reason worth recording, because the obvious
+"fix" is the wrong one. From 2026-08-02 the `e2e` job failed on `/` with
+`region [1]` while the same suite was green locally and the per-style sweep
+passed. The markup was never at fault: `tests/blueprint.json` sets
+`WP_DEBUG_DISPLAY` (added so a boot fatal names itself in the captured response
+body), and the Playground CLI intermittently corrupts its own SQLite database
+under its worker pool (`database disk image is malformed`). A failing query then
+reaches `wpdb::print_error()`, which echoes `<div id="error">` *ahead of the
+doctype* — the HTML parser lands it in `<body>` outside every landmark, and axe
+correctly reports one node with no landmark. The boot gate did not catch it
+because a partly corrupt database still satisfied the featured-image and author
+probes. Reproduced locally by booting `tests/blueprint.ci.json` with an extra
+mu-plugin that fails one query during `render_block`: axe returned exactly
+`region [1]`, target `#error`, and nothing else — the CI failure in full.
+
+The fix is in the harness, not the theme:
+
+- `.github/workflows/e2e.yml` adds `no-php-errors` to both boot gates, so a page
+  carrying rendered PHP/database error output is a *failed boot* and retries
+  instead of running the suite against a broken site. The abort message and the
+  probe line name the condition, and the diagnostics grep the body for it. This
+  complements #131, which waits for the CLI's ready signal and pins six workers
+  to make the underlying SQLite race *rarer*; the gate covers the case where it
+  happens anyway.
+- `accessibility.spec.js` checks for that output before running axe, so the
+  failure reads as a broken Playground boot rather than an a11y regression, and
+  gated violations now print their selectors and markup — the HTML report
+  artifact expires after 7 days, so the log line has to carry the evidence.
+
+Do not add `region` (or any rule) to the ignore list to clear a red run without
+first establishing what the node is. Here the rule was right and the environment
+was broken.
+
 **Per-style accessibility sweep** *(implemented)* — contrast and focus visibility
 differ per variation. `tests/axe-styles.sh` (`npm run test:styles` in `tests/`)
 applies each variation via `playground/apply-style.php` (sets the active user global

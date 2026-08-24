@@ -90,23 +90,34 @@ jobs:
             done
             [ "$cli_ready" = yes ] || return 1
 
-            # Ready only when the homepage renders the seeded featured image
-            # AND the seeded author's nicename survived: a flaky boot can empty
+            # Ready only when the homepage renders the seeded featured image,
+            # the seeded author's nicename survived (a flaky boot can empty
             # user identity fields, which later fails the axe link-name gate as
-            # a nameless author link.
+            # a nameless author link), AND the page is free of rendered
+            # PHP/database errors.
             #
             # Record each condition separately. Collapsed into one `if`, a
             # timeout could not say whether the theme never installed (a
             # git:directory fetch problem) or installed but never seeded (a
             # runPHP/worker problem) — the two have different fixes.
             for i in $(seq 1 60); do
-              theme_ok=no; image_ok=no; author_ok=no
+              theme_ok=no; image_ok=no; author_ok=no; clean_ok=no
               if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then image_ok=yes; fi
+              # One fetch, two conditions. WP_DEBUG_DISPLAY is on, so a query
+              # that fails anyway — the ready signal and six workers above make
+              # that rarer, not impossible — prints `<div id="error">` ahead of
+              # the doctype. The parser lands it in <body> outside every
+              # landmark, and axe reports `region`, blaming the theme for a boot
+              # that actually corrupted its own SQLite database. A page carrying
+              # rendered PHP/database errors is a failed boot, not a regression.
+              if curl -sf http://127.0.0.1:9400/ > /tmp/pg.home; then
+                if grep -q wp-post-image /tmp/pg.home; then image_ok=yes; fi
+                if ! grep -qE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home; then clean_ok=yes; fi
+              fi
               if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
-              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s\n' \
-                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" > /tmp/pg.probe
-              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ]; then return 0; fi
+              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s no-php-errors=%s\n' \
+                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$clean_ok" > /tmp/pg.probe
+              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$clean_ok" = yes ]; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -125,13 +136,18 @@ jobs:
             # `curl -f` suppresses output on a 5xx, so this one must omit it.
             echo "--- response body (first 60 lines) ---" >&2
             curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
+            # Name the rendered errors directly: a notice further down the page
+            # would not appear in the 60-line head, and `no-php-errors=no` on
+            # its own does not say which query or file failed.
+            echo "--- rendered PHP/database errors on / ---" >&2
+            grep -nE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home 2>/dev/null | head -3 >&2 || echo "(none)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
       - name: Run Playwright (smoke + accessibility)
@@ -219,23 +235,34 @@ jobs:
             done
             [ "$cli_ready" = yes ] || return 1
 
-            # Ready only when the homepage renders the seeded featured image
-            # AND the seeded author's nicename survived: a flaky boot can empty
+            # Ready only when the homepage renders the seeded featured image,
+            # the seeded author's nicename survived (a flaky boot can empty
             # user identity fields, which later fails the axe link-name gate as
-            # a nameless author link.
+            # a nameless author link), AND the page is free of rendered
+            # PHP/database errors.
             #
             # Record each condition separately. Collapsed into one `if`, a
             # timeout could not say whether the theme never installed (a
             # git:directory fetch problem) or installed but never seeded (a
             # runPHP/worker problem) — the two have different fixes.
             for i in $(seq 1 60); do
-              theme_ok=no; image_ok=no; author_ok=no
+              theme_ok=no; image_ok=no; author_ok=no; clean_ok=no
               if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
-              if curl -sf http://127.0.0.1:9400/ | grep -q wp-post-image; then image_ok=yes; fi
+              # One fetch, two conditions. WP_DEBUG_DISPLAY is on, so a query
+              # that fails anyway — the ready signal and six workers above make
+              # that rarer, not impossible — prints `<div id="error">` ahead of
+              # the doctype. The parser lands it in <body> outside every
+              # landmark, and axe reports `region`, blaming the theme for a boot
+              # that actually corrupted its own SQLite database. A page carrying
+              # rendered PHP/database errors is a failed boot, not a regression.
+              if curl -sf http://127.0.0.1:9400/ > /tmp/pg.home; then
+                if grep -q wp-post-image /tmp/pg.home; then image_ok=yes; fi
+                if ! grep -qE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home; then clean_ok=yes; fi
+              fi
               if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
-              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s\n' \
-                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" > /tmp/pg.probe
-              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ]; then return 0; fi
+              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s no-php-errors=%s\n' \
+                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$clean_ok" > /tmp/pg.probe
+              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$clean_ok" = yes ]; then return 0; fi
               kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
               sleep 2
             done
@@ -254,13 +281,18 @@ jobs:
             # `curl -f` suppresses output on a 5xx, so this one must omit it.
             echo "--- response body (first 60 lines) ---" >&2
             curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
+            # Name the rendered errors directly: a notice further down the page
+            # would not appear in the 60-line head, and `no-php-errors=no` on
+            # its own does not say which query or file failed.
+            echo "--- rendered PHP/database errors on / ---" >&2
+            grep -nE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home 2>/dev/null | head -3 >&2 || echo "(none)" >&2
             echo "--- last 40 lines of the Playground server log ---" >&2
             tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
             echo "::endgroup::"
             kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
             free_port
           done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
+          echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
       - name: Run per-style axe sweep
