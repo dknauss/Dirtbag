@@ -6,6 +6,8 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+## [0.1.18] - 2026-08-23
+
 ### Added
 
 * Emit `color-scheme` and `theme-color` meta tags derived from the active style variation's background colour. WordPress core emits neither; without `color-scheme`, form controls and scrollbars render as light user-agent widgets on the dark variations (Terminal, Amber CRT, Blueprint). Derived from the resolved global styles rather than a variation slug, so the tags follow the site owner's own Site Editor customisations. The default Brutalist style declares no background and deliberately gets neither tag.
