@@ -1,0 +1,91 @@
+name: Publish to WordPress.org
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the v prefix (for example, 0.1.18)
+        required: true
+        type: string
+      dry_run:
+        description: Validate and stage the SVN release without committing it
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wporg-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.version }} to the theme directory
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SVN_USERNAME: ${{ secrets.WPORG_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Validate release input
+        run: |
+          test -n "$VERSION"
+          test "v$VERSION" != "$VERSION"
+          case "$VERSION" in
+            *[!0-9.]*|'') echo "Version must contain only digits and dots." >&2; exit 1 ;;
+          esac
+
+      - name: Download the published GitHub release package
+        run: |
+          mkdir -p .release/unpacked
+          gh release download "v$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern dirtbag.zip \
+            --dir .release
+          unzip -tq .release/dirtbag.zip
+          unzip -q .release/dirtbag.zip -d .release/unpacked
+
+      - name: Verify the exact package and version
+        run: |
+          test -f .release/unpacked/dirtbag/style.css
+          PACKAGE_VERSION="$(grep -m1 -iE '^\s*Version:' .release/unpacked/dirtbag/style.css | sed -E 's/.*Version:[[:space:]]*//')"
+          echo "requested=$VERSION package=$PACKAGE_VERSION"
+          test "$VERSION" = "$PACKAGE_VERSION"
+          test "$(find .release/unpacked -mindepth 1 -maxdepth 1 -type d -print | wc -l | tr -d ' ')" = 1
+          test ! -e .release/unpacked/dirtbag/.github
+          test ! -e .release/unpacked/dirtbag/playground
+          test ! -e .release/unpacked/dirtbag/tests
+
+      - name: Stage a new immutable SVN version directory
+        run: |
+          svn checkout --depth=immediates https://themes.svn.wordpress.org/dirtbag/ .wporg-svn
+          test ! -e ".wporg-svn/$VERSION"
+          mkdir ".wporg-svn/$VERSION"
+          cp -R .release/unpacked/dirtbag/. ".wporg-svn/$VERSION/"
+          cd .wporg-svn
+          svn add --force "$VERSION"
+          svn status "$VERSION"
+
+      - name: Require WordPress.org credentials
+        if: ${{ !inputs.dry_run }}
+        run: |
+          test -n "$SVN_USERNAME" || { echo "Missing WPORG_USERNAME repository secret." >&2; exit 1; }
+          test -n "$SVN_PASSWORD" || { echo "Missing WPORG_PASSWORD repository secret." >&2; exit 1; }
+
+      - name: Commit the release to WordPress.org SVN
+        if: ${{ !inputs.dry_run }}
+        working-directory: .wporg-svn
+        run: |
+          svn commit "$VERSION" \
+            --message "Release Dirtbag $VERSION" \
+            --username "$SVN_USERNAME" \
+            --password "$SVN_PASSWORD" \
+            --non-interactive \
+            --no-auth-cache
+
+      - name: Dry-run summary
+        if: ${{ inputs.dry_run }}
+        run: echo "Dry run complete; Dirtbag $VERSION is staged and was not committed."
