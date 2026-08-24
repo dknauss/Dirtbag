@@ -54,9 +54,10 @@ jobs:
           # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
           # connection-refused boot crash (WordPress/wordpress-playground#3830,
           # fixed by PR #3833 — stale SQLite WAL .ht.sqlite-shm lock cleanup).
-          # With the crash fixed a clean boot lands on attempt 1; the retry
-          # remains as a guard against the residual file-lock contention the CLI
-          # warns about on small (<6-worker) runners.
+          # GitHub's four-CPU runner defaults to three request workers, and the
+          # CLI warns that fewer than six increases file-lock deadlock risk.
+          # Pin six: the three-worker default intermittently leaves SQLite
+          # returning "Database Error" for an otherwise-live server.
           free_port() {
             # The server's worker children can outlive a kill of the npx wrapper
             # and keep port 9400 bound, so a naive retry dies with EADDRINUSE.
@@ -73,7 +74,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
@@ -170,9 +171,10 @@ jobs:
           # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
           # connection-refused boot crash (WordPress/wordpress-playground#3830,
           # fixed by PR #3833 — stale SQLite WAL .ht.sqlite-shm lock cleanup).
-          # With the crash fixed a clean boot lands on attempt 1; the retry
-          # remains as a guard against the residual file-lock contention the CLI
-          # warns about on small (<6-worker) runners.
+          # GitHub's four-CPU runner defaults to three request workers, and the
+          # CLI warns that fewer than six increases file-lock deadlock risk.
+          # Pin six: the three-worker default intermittently leaves SQLite
+          # returning "Database Error" for an otherwise-live server.
           free_port() {
             # The server's worker children can outlive a kill of the npx wrapper
             # and keep port 9400 bound, so a naive retry dies with EADDRINUSE.
@@ -189,7 +191,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Ready only when the homepage renders the seeded featured image (a
             # bare 200 can precede the seed import) AND the seeded author's
