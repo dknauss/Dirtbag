@@ -70,7 +70,7 @@ Keep third-party resource credits in `readme.txt`. Current credits include:
 4. Test keyboard navigation and small viewports.
 5. Validate rendered HTML on representative pages.
 6. Confirm package contents before uploading.
-7. Publish the already-verified GitHub release ZIP with the **Publish to WordPress.org** workflow. Run it once with `dry_run` enabled, then again with `dry_run` disabled. The repository secrets `WPORG_USERNAME` and `WPORG_PASSWORD` must contain the WordPress.org SVN credentials.
+7. Publish the already-verified GitHub release ZIP with the **Publish to WordPress.org** workflow. Run it once with `dry_run` enabled, then again with `dry_run` disabled. The repository secrets `WPORG_USERNAME` and `WP_ORG_PASSWORD` must contain the WordPress.org SVN credentials. The legacy `WPORG_PASSWORD` name is also accepted.
 8. After upload/approval, verify the live listing, support forum, translations link, screenshots, version number, and download package at [wordpress.org/themes/dirtbag](https://wordpress.org/themes/dirtbag/).
 
 The workflow downloads `dirtbag.zip` from the matching `v<version>` GitHub release, verifies the package version and exclusions again, stages a new immutable version directory in `https://themes.svn.wordpress.org/dirtbag/`, and commits only that directory. WordPress.org theme SVN versions cannot be overwritten; publish a higher version to correct a released mistake.

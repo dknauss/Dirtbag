@@ -27,7 +27,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       SVN_USERNAME: ${{ secrets.WPORG_USERNAME }}
-      SVN_PASSWORD: ${{ secrets.WPORG_PASSWORD }}
+      SVN_PASSWORD: ${{ secrets.WP_ORG_PASSWORD || secrets.WPORG_PASSWORD }}
       VERSION: ${{ inputs.version }}
     steps:
       - name: Validate release input
@@ -78,7 +78,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           test -n "$SVN_USERNAME" || { echo "Missing WPORG_USERNAME repository secret." >&2; exit 1; }
-          test -n "$SVN_PASSWORD" || { echo "Missing WPORG_PASSWORD repository secret." >&2; exit 1; }
+          test -n "$SVN_PASSWORD" || { echo "Missing WP_ORG_PASSWORD repository secret." >&2; exit 1; }
 
       - name: Commit the release to WordPress.org SVN
         if: ${{ !inputs.dry_run }}
