@@ -14,6 +14,9 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 * `bin/package-check` now requires `styles.color.background` in each style variation to be a literal hex colour, since a non-hex value would silently drop both meta tags.
 * `bin/package-check` now rejects a `styles.css` key in any style variation, which would clobber `theme.json`'s root CSS the same way user Additional CSS did.
 * `tests/styles/additional-css.spec.js` — regression coverage for that clobber, tagged `@self-switching` alongside `sticking.spec.js` so the per-style sweep excludes both.
+* A print stylesheet, as an `@media print` block in `theme.json`'s root `styles.css` (the theme ships no CSS files). The site printed as-styled before, and browsers do not print background colours: the dark variations (Terminal, Amber CRT, Blueprint) kept their near-white text, lost the black behind it, and came out of the printer blank. Printing is now black on white whatever the variation, with the truck logo's dark-screen filter reset, navigation, skip links, search, post navigation and comment chrome dropped, absolute links in the article body spelled out, and headings kept with what they head.
+* `tests/styles/print.spec.js` — per-style print coverage, including a check that the post title and content still print, so an over-eager reset fails loudly. Runs in CI as well as locally: every assertion holds for any active variation.
+* `docs/print-styles.md` — what prints, what deliberately does not, and why the guard has to run per style.
 
 ### Fixed
 

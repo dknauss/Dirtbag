@@ -9,6 +9,7 @@ This folder holds repo-facing documentation for the Dirtbag WordPress block them
 - [Style variations](style-variations.md) — how the global styles work and how the truck icon colours are handled.
 - [Site logos, site icons, and favicons](site-icons-and-logos.md) — the three separate brand marks, where each displays, and which ones CSS can recolour.
 - [What's in the `<head>`](head-metadata.md) — what WordPress core emits for a block theme, the two colour tags Dirtbag adds, and why Open Graph and JSON-LD deliberately need a plugin.
+- [Printing Dirtbag](print-styles.md) — the `@media print` block, why the dark variations need it, and what deliberately does not print.
 - [WordPress.org theme review notes](theme-review.md) — packaging, credits, translatability, security, performance, and review checklist.
 - [Site-root open-web file templates](site-root-open-web-files.md) — `robots.txt`, `llms.txt`, OPML, and other files that belong in the site root, not the theme zip.
 - [GitHub Pages static export](github-pages-static-export.md) — how the live demo at `dknauss.github.io/dirtbag` is crawled, rewritten, and deployed to the `gh-pages` branch.
