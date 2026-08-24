@@ -59,6 +59,11 @@ jobs:
           test ! -e .release/unpacked/dirtbag/playground
           test ! -e .release/unpacked/dirtbag/tests
 
+      - name: Install Subversion
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes subversion
+
       - name: Stage a new immutable SVN version directory
         run: |
           svn checkout --depth=immediates https://themes.svn.wordpress.org/dirtbag/ .wporg-svn
