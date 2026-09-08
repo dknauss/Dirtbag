@@ -15,7 +15,7 @@
 	<xsl:variable name="has-lastmod" select="count( /sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod )" />
 
 	<xsl:template match="/">
-		<html lang="en-US">
+		<html lang="en-CA">
 			<head>
 				<title>XML Sitemap</title>
 				<style>

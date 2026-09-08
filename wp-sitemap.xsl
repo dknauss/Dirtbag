@@ -17,7 +17,7 @@
 	<xsl:variable name="has-priority"   select="count( /sitemap:urlset/sitemap:url/sitemap:priority )"   />
 
 	<xsl:template match="/">
-		<html lang="en-US">
+		<html lang="en-CA">
 			<head>
 				<title>XML Sitemap</title>
 				<style>
