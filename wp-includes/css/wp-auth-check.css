@@ -62,7 +62,7 @@
 	left: 50%;
 	top: 50%;
 	margin: -10px 0 0 -10px;
-	background: url(https://dknauss.github.io/dirtbag/wp-includes/images/spinner.gif) no-repeat center;
+	background: url(https://dknauss.github.io/Dirtbag/wp-includes/images/spinner.gif) no-repeat center;
 	background-size: 20px 20px;
 	transform: translateZ(0);
 }
@@ -71,7 +71,7 @@
   (min-resolution: 120dpi) {
 
 	#wp-auth-check-form.loading:before {
-		background-image: url(https://dknauss.github.io/dirtbag/wp-includes/images/spinner-2x.gif);
+		background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/images/spinner-2x.gif);
 	}
 
 }

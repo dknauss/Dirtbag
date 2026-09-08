@@ -289,7 +289,7 @@
 
 /* higher specificity */
 .wp-core-ui .media-modal-icon {
-	background-image: url(https://dknauss.github.io/dirtbag/wp-includes/images/uploader-icons.png);
+	background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/images/uploader-icons.png);
 	background-repeat: no-repeat;
 }
 
@@ -1806,7 +1806,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
  * Spinner
  */
 .media-frame .spinner {
-	background: url(https://dknauss.github.io/dirtbag/wp-includes/images/spinner.gif) no-repeat;
+	background: url(https://dknauss.github.io/Dirtbag/wp-includes/images/spinner.gif) no-repeat;
 	background-size: 20px 20px;
 	float: right;
 	display: inline-block;
@@ -3018,12 +3018,12 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
   (min-resolution: 120dpi) {
 
 	.wp-core-ui .media-modal-icon {
-		background-image: url(https://dknauss.github.io/dirtbag/wp-includes/images/uploader-icons-2x.png);
+		background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/images/uploader-icons-2x.png);
 		background-size: 134px 15px;
 	}
 
 	.media-frame .spinner {
-		background-image: url(https://dknauss.github.io/dirtbag/wp-includes/images/spinner-2x.gif);
+		background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/images/spinner-2x.gif);
 	}
 }
 

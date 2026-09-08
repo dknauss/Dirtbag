@@ -153,19 +153,19 @@ img[data-mce-selected]::selection {
 }
 
 .mce-content-body img[data-wp-more="more"] {
-	background: transparent url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/more.png) repeat-y scroll center center;
+	background: transparent url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/more.png) repeat-y scroll center center;
 }
 
 .mce-content-body img[data-wp-more="nextpage"] {
-	background: transparent url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/pagebreak.png) repeat-y scroll center center;
+	background: transparent url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/pagebreak.png) repeat-y scroll center center;
 }
 
 .mce-object-style {
-	background-image: url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/style.svg);
+	background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/style.svg);
 }
 
 .mce-object-script {
-	background-image: url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/script.svg);
+	background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/script.svg);
 }
 
 /* Styles for formatting the boundaries of anchors and code elements */
@@ -220,7 +220,7 @@ img[data-mce-selected]::selection {
 }
 
 .mce-content-body img.wp-media.wp-gallery {
-	background-image: url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/gallery.png);
+	background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/gallery.png);
 }
 
 /* Image resize handles */
@@ -475,7 +475,7 @@ a[data-wplink-url-error]:before {
 
 img.wp-oembed {
 	border: 1px dashed #888;
-	background: #f7f5f2 url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/embedded.png) no-repeat scroll center center;
+	background: #f7f5f2 url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/embedded.png) no-repeat scroll center center;
 	width: 300px;
 	height: 250px;
 	outline: 0;
@@ -492,12 +492,12 @@ img.wp-oembed {
 	(min-resolution: 120dpi) {
 
 	.mce-content-body img.mce-wp-more {
-		background-image: url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/more-2x.png);
+		background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/more-2x.png);
 		background-size: 1900px 20px;
 	}
 
 	.mce-content-body img.mce-wp-nextpage {
-		background-image: url(https://dknauss.github.io/dirtbag/wp-includes/js/tinymce/skins/wordpress/images/pagebreak-2x.png);
+		background-image: url(https://dknauss.github.io/Dirtbag/wp-includes/js/tinymce/skins/wordpress/images/pagebreak-2x.png);
 		background-size: 1900px 20px;
 	}
 }
