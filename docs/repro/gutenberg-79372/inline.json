@@ -1,0 +1,61 @@
+{
+  "mode": "inline",
+  "tests": {
+    "frontend": {
+      "display": "inline",
+      "firstLineBesideFloat": true,
+      "lineBoxes": 2
+    },
+    "editor-float": {
+      "display": "inline",
+      "firstLineBesideFloat": true
+    },
+    "type-at-end": {
+      "ok": true,
+      "title": "A reasonably long linked post title that should wrap XYZ",
+      "clickedInsideBox": true
+    },
+    "select-all-delete": {
+      "ok": true,
+      "title": "",
+      "focused": true,
+      "caretInside": true,
+      "width": 71,
+      "height": 23
+    },
+    "type-into-empty": {
+      "ok": true,
+      "title": "New"
+    },
+    "backspace-on-empty": {
+      "ok": true,
+      "postTitleBlocks": 1,
+      "focused": true,
+      "caretInside": true,
+      "width": 71,
+      "height": 23
+    },
+    "refocus-empty-by-click": {
+      "ok": true,
+      "title": "Again",
+      "afterClick": {
+        "focused": true,
+        "caretInside": true,
+        "width": 71,
+        "height": 23
+      },
+      "box": {
+        "w": 71,
+        "h": 23
+      }
+    },
+    "caret-at-start-of-wrapped-title": {
+      "ok": true,
+      "title": "QA reasonably long linked post title that should wrap",
+      "lineBoxes": 3
+    }
+  },
+  "console": [
+    "warning: global-styles-css-custom-properties-inline-css was added to the iframe incorrectly. Please use block.json or enqueue_block_assets to add styles to the iframe. JSHandle@node"
+  ]
+}
