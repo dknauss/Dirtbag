@@ -146,3 +146,31 @@ The site used on 2026-09-15 was deleted after the run; recreate with
 - PR #80231 retitled and rewritten; branch now carries the editor-scoping commit, the
   one-line removal, and a merge of `trunk` (the *Required changes from trunk* status
   needs the branch current). Net diff is the single deleted line.
+
+## Lint status of the upstream commit
+
+The commit on the PR branch was made with `--no-verify`. Gutenberg's pre-commit hook
+runs `lint:css`, and that clone had no working `node_modules`, so the hook failed with
+`wp-scripts: command not found` and reverted the staged change rather than checking it.
+Upstream CI did not cover the gap either: none of the 69 checks on #80231 is a CSS lint
+job — change detection skips those suites for a one-line `.scss` deletion.
+
+**Checked afterwards, on 2026-09-15, and it passes.** With the repo's own toolchain
+(Node 24.18.1 / npm 11.16.0 per `.nvmrc` and `devEngines`, full `npm ci`),
+`npm run lint:css` — the same command the hook runs, suppressions file included —
+exits 0 on the branch.
+
+The negative control matters here, because a lint run that quietly matches no files
+looks exactly like a clean pass:
+
+- Injecting `cursor: pointer` (banned in `tools/stylelint/config.js`) produced **no**
+  error. That rule does not fire on this file for reasons not chased down, so the
+  first control was vacuous.
+- Injecting `color: #FFFFFF` produced `@stylistic/color-hex-case` and
+  `color-hex-length` errors at that line, exit 2, naming
+  `packages/block-library/src/post-title/style.scss`.
+- Restoring the file returns exit 0.
+
+So the command does reach the changed file and does enforce rules on it. Standalone
+stylelint 17 with `postcss-scss` also parses the file cleanly, though it cannot load
+the repo's rules (they live in the `tools/stylelint` workspace package).
