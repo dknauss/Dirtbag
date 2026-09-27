@@ -1,11 +1,14 @@
 # Gutenberg #79372 — Post Title link is `inline-block`, breaking float / `shape-outside` wrapping
 
-**Status (2026-09-15):** upstream PR open and revised to a one-line deletion.
+**Status (2026-09-27):** **merged upstream.** [WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231)
+was approved by youknowriad and merged 2026-09-16 as `2a2d71d9b`, closing #79372.
+First tagged in `v24.1.0-rc.1`, so it ships in Gutenberg 24.1.0 — not in 24.0.0,
+which was released the same day from an earlier branch point.
 
 - Issue: <https://github.com/WordPress/gutenberg/issues/79372> — `[Type] Bug` /
-  `[Block] Post Title`, `[Status] In Progress`.
+  `[Block] Post Title`, closed 2026-09-16 by the merge.
 - PR: <https://github.com/WordPress/gutenberg/pull/80231> — *Post Title: remove the
-  inline-block from the title link*.
+  inline-block from the title link*, merged 2026-09-16.
 - Patch (current): [`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch)
 - Evidence from the 2026-09-15 verification: [`gutenberg-79372/`](gutenberg-79372/)
 - Repro: [`chrome-float-repro.html`](chrome-float-repro.html) and
@@ -146,3 +149,42 @@ The site used on 2026-09-15 was deleted after the run; recreate with
 - PR #80231 retitled and rewritten; branch now carries the editor-scoping commit, the
   one-line removal, and a merge of `trunk` (the *Required changes from trunk* status
   needs the branch current). Net diff is the single deleted line.
+
+## Lint status of the upstream commit
+
+The commit on the PR branch was made with `--no-verify`. Gutenberg's pre-commit hook
+runs `lint:css`, and that clone had no working `node_modules`, so the hook failed with
+`wp-scripts: command not found` and reverted the staged change rather than checking it.
+Upstream CI did not cover the gap either: none of the 69 checks on #80231 is a CSS lint
+job — change detection skips those suites for a one-line `.scss` deletion.
+
+**Checked afterwards, on 2026-09-15, and it passes.** With the repo's own toolchain
+(Node 24.18.1 / npm 11.16.0 per `.nvmrc` and `devEngines`, full `npm ci`),
+`npm run lint:css` — the same command the hook runs, suppressions file included —
+exits 0 on the branch.
+
+The negative control matters here, because a lint run that quietly matches no files
+looks exactly like a clean pass:
+
+- Injecting `cursor: pointer` (banned in `tools/stylelint/config.js`) produced **no**
+  error. That rule does not fire on this file for reasons not chased down, so the
+  first control was vacuous.
+- Injecting `color: #FFFFFF` produced `@stylistic/color-hex-case` and
+  `color-hex-length` errors at that line, exit 2, naming
+  `packages/block-library/src/post-title/style.scss`.
+- Restoring the file returns exit 0.
+
+So the command does reach the changed file and does enforce rules on it. Standalone
+stylelint 17 with `postcss-scss` also parses the file cleanly, though it cannot load
+the repo's rules (they live in the `tools/stylelint` workspace package).
+
+## Outcome
+
+Merged 2026-09-16 as `2a2d71d9b`, approved by youknowriad — *"Thanks for the extensive
+research. I appreciate it, it feels to me, this might be ready to ship."* Issue #79372
+closed with the merge. The commit is in `v24.1.0-rc.1` and ships in Gutenberg 24.1.0.
+
+The theme-side workaround (the float style variant scoping the title link back to
+`display: inline`) is now redundant wherever the bundled Gutenberg is 24.1.0 or newer,
+but it stays in place for older WordPress: core's own copy of the rule ships with the
+WordPress release cycle, not with Gutenberg trunk.
