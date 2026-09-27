@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Verify tag matches theme version
         run: |
@@ -62,7 +62,7 @@ jobs:
           unzip -tq dirtbag-playground-demo.zip
 
       - name: Create GitHub Release + attach ZIPs
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             dirtbag.zip
