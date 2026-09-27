@@ -44,6 +44,13 @@ historic Trac comment.
   Post Title block links are `display: inline-block`, which makes the whole title
   an atomic inline-level box. In narrow float / `shape-outside` layouts, the title
   can drop below a floated thumbnail instead of wrapping beside and under it.
+  Fix proposed in [#80231](https://github.com/WordPress/gutenberg/pull/80231).
+  The rule was added in 2021 to silence a `RichText` warning that core itself
+  removed weeks later in [#32013](https://github.com/WordPress/gutenberg/pull/32013),
+  along with the same workaround in Site Title, File and Query Pagination — Post
+  Title's copy was missed because it lives in `style.scss`. Verification of the two
+  review questions (editor/front-end parity; visual impact on existing themes) is in
+  [`docs/repro/gutenberg-79372-post-title-inline-float.md`](repro/gutenberg-79372-post-title-inline-float.md).
 - [WordPress/gutenberg#79380](https://github.com/WordPress/gutenberg/issues/79380):
   the image lightbox trigger button is server-rendered with no static accessible
   name — its `aria-label` is supplied only at runtime by the Interactivity API
