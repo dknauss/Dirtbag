@@ -1,11 +1,14 @@
 # Gutenberg #79372 — Post Title link is `inline-block`, breaking float / `shape-outside` wrapping
 
-**Status (2026-09-15):** upstream PR open and revised to a one-line deletion.
+**Status (2026-09-27):** **merged upstream.** [WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231)
+was approved by youknowriad and merged 2026-09-16 as `2a2d71d9b`, closing #79372.
+First tagged in `v24.1.0-rc.1`, so it ships in Gutenberg 24.1.0 — not in 24.0.0,
+which was released the same day from an earlier branch point.
 
 - Issue: <https://github.com/WordPress/gutenberg/issues/79372> — `[Type] Bug` /
-  `[Block] Post Title`, `[Status] In Progress`.
+  `[Block] Post Title`, closed 2026-09-16 by the merge.
 - PR: <https://github.com/WordPress/gutenberg/pull/80231> — *Post Title: remove the
-  inline-block from the title link*.
+  inline-block from the title link*, merged 2026-09-16.
 - Patch (current): [`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch)
 - Evidence from the 2026-09-15 verification: [`gutenberg-79372/`](gutenberg-79372/)
 - Repro: [`chrome-float-repro.html`](chrome-float-repro.html) and
@@ -174,3 +177,14 @@ looks exactly like a clean pass:
 So the command does reach the changed file and does enforce rules on it. Standalone
 stylelint 17 with `postcss-scss` also parses the file cleanly, though it cannot load
 the repo's rules (they live in the `tools/stylelint` workspace package).
+
+## Outcome
+
+Merged 2026-09-16 as `2a2d71d9b`, approved by youknowriad — *"Thanks for the extensive
+research. I appreciate it, it feels to me, this might be ready to ship."* Issue #79372
+closed with the merge. The commit is in `v24.1.0-rc.1` and ships in Gutenberg 24.1.0.
+
+The theme-side workaround (the float style variant scoping the title link back to
+`display: inline`) is now redundant wherever the bundled Gutenberg is 24.1.0 or newer,
+but it stays in place for older WordPress: core's own copy of the rule ships with the
+WordPress release cycle, not with Gutenberg trunk.

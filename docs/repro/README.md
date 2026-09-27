@@ -33,9 +33,10 @@ float variant must override the title link back to `display: inline`; this is no
 clean Chromium filing as currently reduced.
 
 Filed upstream as [WordPress/gutenberg#79372](https://github.com/WordPress/gutenberg/issues/79372)
-(maintainer-triaged `[Type] Bug`), with the core fix proposed in
-[WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231): delete
-the rule outright. An editor-only variant was proposed first and withdrawn — the
+(maintainer-triaged `[Type] Bug`), fixed by
+[WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231) — delete
+the rule outright — merged 2026-09-16, shipping in Gutenberg 24.1.0. An editor-only
+variant was proposed first and withdrawn — the
 editor warning it preserved was itself removed from core in 2021
 ([#32013](https://github.com/WordPress/gutenberg/pull/32013)), so nothing needs the
 `inline-block` any more.

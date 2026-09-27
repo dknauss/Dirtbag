@@ -37,6 +37,11 @@ historic Trac comment.
 - [WordPress/two-factor#877](https://github.com/WordPress/two-factor/pull/877):
   **merged 2026-06-29** — fails closed when `random_bytes()` is unavailable during
   login nonce generation, replacing a weak legacy fallback.
+- [WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231):
+  **merged 2026-09-16** — removed the `display: inline-block` from the Post Title
+  block's link, so a linked title wraps around floats and `shape-outside` instead of
+  dropping below them. The rule had been vestigial since 2021 (see #79372 below).
+  Ships in Gutenberg 24.1.0.
 
 ### Interesting reports and design questions
 
@@ -44,7 +49,7 @@ historic Trac comment.
   Post Title block links are `display: inline-block`, which makes the whole title
   an atomic inline-level box. In narrow float / `shape-outside` layouts, the title
   can drop below a floated thumbnail instead of wrapping beside and under it.
-  Fix proposed in [#80231](https://github.com/WordPress/gutenberg/pull/80231).
+  Fixed by [#80231](https://github.com/WordPress/gutenberg/pull/80231), merged 2026-09-16.
   The rule was added in 2021 to silence a `RichText` warning that core itself
   removed weeks later in [#32013](https://github.com/WordPress/gutenberg/pull/32013),
   along with the same workaround in Site Title, File and Query Pagination — Post
