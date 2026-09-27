@@ -33,11 +33,19 @@ float variant must override the title link back to `display: inline`; this is no
 clean Chromium filing as currently reduced.
 
 Filed upstream as [WordPress/gutenberg#79372](https://github.com/WordPress/gutenberg/issues/79372)
-(maintainer-triaged `[Type] Bug`). A held core fix — make the `inline-block`
-editor-only so the front-end link wraps around floats — plus the archaeology behind
-it lives in
-[`gutenberg-79372-post-title-inline-float.md`](gutenberg-79372-post-title-inline-float.md)
-and [`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch).
+(maintainer-triaged `[Type] Bug`), with the core fix proposed in
+[WordPress/gutenberg#80231](https://github.com/WordPress/gutenberg/pull/80231): delete
+the rule outright. An editor-only variant was proposed first and withdrawn — the
+editor warning it preserved was itself removed from core in 2021
+([#32013](https://github.com/WordPress/gutenberg/pull/32013)), so nothing needs the
+`inline-block` any more.
+
+The archaeology, the answers to the review questions, and the verification evidence
+(editor/front-end parity, Twenty Twenty-Five pixel comparison, directory-wide theme
+scan) live in
+[`gutenberg-79372-post-title-inline-float.md`](gutenberg-79372-post-title-inline-float.md),
+[`gutenberg-79372-post-title-inline-float.patch`](gutenberg-79372-post-title-inline-float.patch)
+and [`gutenberg-79372/`](gutenberg-79372/).
 
 ## How to run it (this matters)
 
