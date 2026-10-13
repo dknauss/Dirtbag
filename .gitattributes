@@ -11,3 +11,6 @@
 /tests export-ignore
 /.gitignore export-ignore
 /.gitattributes export-ignore
+/tools/ export-ignore
+/components.json export-ignore
+/workspace-components.json export-ignore

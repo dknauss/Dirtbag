@@ -179,3 +179,9 @@ git config core.hooksPath .githooks
 ```
 
 The `commit-msg` hook then rejects any commit without a trailer. A genuine human-only commit can attribute the person, or bypass deliberately with `git commit --no-verify`.
+
+## Component ownership
+
+See [component editing contracts](docs/COMPONENTS.md) and the
+[design/content workflow](docs/COMPONENT-WORKFLOW.md). Validate with
+`python3 tools/check-components.py`.
