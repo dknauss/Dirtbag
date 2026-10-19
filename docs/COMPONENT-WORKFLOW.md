@@ -50,10 +50,11 @@ fields and variants first; do not globally disable the Site Editor for developer
 
 ## Shared tooling
 
-`tools/check-components.py` and `tools/audit-design-overrides.php` are maintained here
-and distributed unchanged to component-owning repos so public CI never needs access to
-this private repository. The checker is Python 3.9+ standard library only. Copies are
-reviewed together; they are not a WordPress runtime dependency.
+`tools/check-components.py` and `tools/audit-design-overrides.php` are maintained
+in Ollie Child Kit and distributed unchanged to component-owning repositories.
+Each repository's CI runs independently, without checking out the kit. The checker
+uses the Python 3.9+ standard library. Copies are reviewed together and are not a
+WordPress runtime dependency.
 
 Checks detect added/removed components, missing sources/references, block name and
 attribute/support changes, pattern slug changes, and missing managed-pattern locks.
