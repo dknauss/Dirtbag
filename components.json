@@ -1,0 +1,519 @@
+{
+  "version": 1,
+  "repository": "Dirtbag",
+  "scopes": [
+    "."
+  ],
+  "components": [
+    {
+      "id": "parts/footer.html",
+      "kind": "template",
+      "source": "parts/footer.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "parts/header.html",
+      "kind": "template",
+      "source": "parts/header.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "parts/navigation-overlay.html",
+      "kind": "template",
+      "source": "parts/navigation-overlay.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/accessible-table",
+      "kind": "pattern",
+      "source": "patterns/accessible-table.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/almanac-card",
+      "kind": "pattern",
+      "source": "patterns/almanac-card.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/blogroll-xfn",
+      "kind": "pattern",
+      "source": "patterns/blogroll-xfn.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/byline",
+      "kind": "pattern",
+      "source": "patterns/byline.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/colophon",
+      "kind": "pattern",
+      "source": "patterns/colophon.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/color-style-demo-panel",
+      "kind": "pattern",
+      "source": "patterns/color-style-demo-panel.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/comments",
+      "kind": "pattern",
+      "source": "patterns/comments.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/field-note",
+      "kind": "pattern",
+      "source": "patterns/field-note.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/front-page",
+      "kind": "pattern",
+      "source": "patterns/front-page.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/h-card-profile",
+      "kind": "pattern",
+      "source": "patterns/h-card-profile.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/now-section",
+      "kind": "pattern",
+      "source": "patterns/now-section.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/open-web-links",
+      "kind": "pattern",
+      "source": "patterns/open-web-links.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/post-meta",
+      "kind": "pattern",
+      "source": "patterns/post-meta.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/previous-next",
+      "kind": "pattern",
+      "source": "patterns/previous-next.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/rel-me-links",
+      "kind": "pattern",
+      "source": "patterns/rel-me-links.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/roadside-notice",
+      "kind": "pattern",
+      "source": "patterns/roadside-notice.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "dirtbag/webmention-invitation",
+      "kind": "pattern",
+      "source": "patterns/webmention-invitation.php",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Editable starter when inserted; native content and design controls remain available. File references are developer-owned composition",
+      "updates": "File references render the current registered pattern; inserted copies in post content are detached and are not migrated by a file update",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/amber-crt.json",
+      "kind": "variation",
+      "source": "styles/amber-crt.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/blueprint.json",
+      "kind": "variation",
+      "source": "styles/blueprint.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/hi-vis.json",
+      "kind": "variation",
+      "source": "styles/hi-vis.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/minimalist.json",
+      "kind": "variation",
+      "source": "styles/minimalist.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/newspaper.json",
+      "kind": "variation",
+      "source": "styles/newspaper.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "styles/terminal.json",
+      "kind": "variation",
+      "source": "styles/terminal.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/404.html",
+      "kind": "template",
+      "source": "templates/404.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/archive.html",
+      "kind": "template",
+      "source": "templates/archive.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/author.html",
+      "kind": "template",
+      "source": "templates/author.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/category.html",
+      "kind": "template",
+      "source": "templates/category.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/date.html",
+      "kind": "template",
+      "source": "templates/date.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/front-page.html",
+      "kind": "template",
+      "source": "templates/front-page.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/home.html",
+      "kind": "template",
+      "source": "templates/home.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/index.html",
+      "kind": "template",
+      "source": "templates/index.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-about.html",
+      "kind": "template",
+      "source": "templates/page-about.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-archive.html",
+      "kind": "template",
+      "source": "templates/page-archive.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-centered.html",
+      "kind": "template",
+      "source": "templates/page-centered.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-colophon.html",
+      "kind": "template",
+      "source": "templates/page-colophon.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-feeds.html",
+      "kind": "template",
+      "source": "templates/page-feeds.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-links.html",
+      "kind": "template",
+      "source": "templates/page-links.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-no-title.html",
+      "kind": "template",
+      "source": "templates/page-no-title.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-now.html",
+      "kind": "template",
+      "source": "templates/page-now.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-plain.html",
+      "kind": "template",
+      "source": "templates/page-plain.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-search.html",
+      "kind": "template",
+      "source": "templates/page-search.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-uses.html",
+      "kind": "template",
+      "source": "templates/page-uses.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page-wide.html",
+      "kind": "template",
+      "source": "templates/page-wide.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/page.html",
+      "kind": "template",
+      "source": "templates/page.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/search.html",
+      "kind": "template",
+      "source": "templates/search.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/single.html",
+      "kind": "template",
+      "source": "templates/single.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "templates/tag.html",
+      "kind": "template",
+      "source": "templates/tag.html",
+      "design_owner": "Repository source files",
+      "data_owner": "WordPress editorial content",
+      "editable": "Content values come from core/plugin blocks. Structural Site Editor changes are developer changes and must be reconciled to Git",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    },
+    {
+      "id": "theme.json",
+      "kind": "design",
+      "source": "theme.json",
+      "design_owner": "Repository source files",
+      "data_owner": "Git defaults; WordPress stores chosen variation and any user overrides",
+      "editable": "Site identity and approved preset/variation selections; changes to tokens or custom styles require design review",
+      "updates": "Code updates preserve editorial data; verify target database overrides before deployment",
+      "verification": "Source validation plus editor and frontend checks on a local site"
+    }
+  ]
+}
