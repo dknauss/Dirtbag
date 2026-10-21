@@ -36,7 +36,8 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
 
       - name: Pin the CI blueprint to this commit
         run: sed "s/__REF__/${{ github.event.pull_request.head.sha || github.sha }}/" tests/blueprint.json > tests/blueprint.ci.json
@@ -178,7 +179,8 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '24'
+          check-latest: true
 
       - name: Generate per-style CI blueprint
         env:
