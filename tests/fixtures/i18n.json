@@ -1,0 +1,494 @@
+[
+  {
+    "source": "<?php __( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( 'x' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( \"x\", \"wrong\" );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _e( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php esc_html__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _x( 'x', 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _x( 'x', 'ctx' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php esc_html_x( 'x', 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _ex( 'x', 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n, 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _nx( 'a', 'b', $n, 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _n_noop( 'a', 'b' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php echo sprintf( __( 'x %s', 'wrong' ), $y );",
+    "expected": 1
+  },
+  {
+    "source": "<?= esc_html__( 'x', 'wrong' ) ?>",
+    "expected": 1
+  },
+  {
+    "source": "<?= _x( 'x', 'ctx', 'wrong' ) ?>",
+    "expected": 1
+  },
+  {
+    "source": "<?php translate( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php translate_with_gettext_context( 'x', 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php translate_nooped_plural( $noop, 2, 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n, /* why */ 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?PHP __( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?Php _x( 'x', 'ctx', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php $s = '?>'; __( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php /* ?> */ __( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php __( \"x\", \"dirtbag\" );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _x( 'x', 'ctx', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n, 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _nx( 'a', 'b', $n, 'ctx', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _n_noop( 'a', 'b', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php echo sprintf( __( 'x %s', 'dirtbag' ), $y );",
+    "expected": 0
+  },
+  {
+    "source": "<?php __( 'it\\'s', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php $s = 'mentions _x( foo ) in a string'; // and _e( 'x', 'wrong' ) in a comment",
+    "expected": 0
+  },
+  {
+    "source": "<?php /* _e( 'x', 'wrong' ) */ my__( 'x', 'wrong' ); $o->__( 'x', 'wrong' );",
+    "expected": 0
+  },
+  {
+    "source": "<a href='https://example.com/'>not php</a>",
+    "expected": 0
+  },
+  {
+    "source": "<?= esc_html__( 'x', 'dirtbag' ) ?>",
+    "expected": 0
+  },
+  {
+    "source": "<?php translate( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php translate_with_gettext_context( 'x', 'ctx', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n, /* item count */ 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _n( 'a', 'b', $n, // item count\n 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php _x( 'x', /* ctx */ 'ctx', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php namespace Dirtbag; function translate( $value, $locale ) { return $value; }",
+    "expected": 0
+  },
+  {
+    "source": "<?php function __( $text, $domain ) {}",
+    "expected": 0
+  },
+  {
+    "source": "<?php echo \\Dirtbag\\translate( $value, $locale );",
+    "expected": 0
+  },
+  {
+    "source": "<?php $html = '?> not a close'; __( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php // ?>\n__( 'prose', 'wrong' )",
+    "expected": 0
+  },
+  {
+    "source": "<?php # ?>\n_e( 'prose', 'wrong' )",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\__( 'Label', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php $s = <<<EOT\n?>\nEOT;\n__( 'Label', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php $s = <<<'EOT'\n?>\nEOT;\n__( 'Label', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _E( 'Label', 'wrong' ); Translate( 'Label', 'wrong' ); ESC_HTML__( 'Label', 'wrong' );",
+    "expected": 3
+  },
+  {
+    "source": "<?php \\__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php namespace Example; \\ESC_HTML__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\Example\\__( 'x', 'wrong' ); Example\\translate( 'x', 'wrong' ); namespace\\_e( 'x', 'wrong' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php function &translate( $value, $domain ) {} $o->Translate( 'x', 'wrong' ); Example::ESC_HTML__( 'x', 'wrong' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php $s = <<<EOT\n__( 'prose', 'wrong' ); ?>\nEOT;\n__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php $s = <<<'EOT'\n__( 'prose', 'wrong' ); ?>\nEOT;\n__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php // ?>\n__( 'prose', 'wrong' )\n<?php \\__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php _n( fn_count( array( 1, 2 ), [3, 4] ), 'many', $n, /* domain */ 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php __( 'x', 'dirt' . 'bag' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( 'x', \"$domain\" );",
+    "expected": 1
+  },
+  {
+    "source": "<?php __( __( 'x', 'wrong' ), 'wrong' );",
+    "expected": 2
+  },
+  {
+    "source": "<?php \\__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\__( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_E( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_E( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_E( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\TRANSLATE( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_HTML__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML__( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML_E( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_HTML_E( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML_E( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_ATTR__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR__( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR_E( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_ATTR_E( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR_E( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML__( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_XML__( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML__( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML_E( 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_XML_E( 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML_E( 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_X( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_X( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_X( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_EX( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_EX( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_EX( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML_X( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_HTML_X( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_HTML_X( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR_X( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_ATTR_X( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_ATTR_X( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML_X( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\ESC_XML_X( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\ESC_XML_X( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_N_NOOP( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_N_NOOP( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_N_NOOP( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE_WITH_GETTEXT_CONTEXT( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\TRANSLATE_WITH_GETTEXT_CONTEXT( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE_WITH_GETTEXT_CONTEXT( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE_NOOPED_PLURAL( 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\TRANSLATE_NOOPED_PLURAL( 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\TRANSLATE_NOOPED_PLURAL( 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_N( 'x', 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_N( 'x', 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_N( 'x', 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_NX_NOOP( 'x', 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_NX_NOOP( 'x', 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_NX_NOOP( 'x', 'x', 'x', DIRTBAG );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_NX( 'x', 'x', 'x', 'x', 'dirtbag' );",
+    "expected": 0
+  },
+  {
+    "source": "<?php \\_NX( 'x', 'x', 'x', 'x', 'wrong' );",
+    "expected": 1
+  },
+  {
+    "source": "<?php \\_NX( 'x', 'x', 'x', 'x', DIRTBAG );",
+    "expected": 1
+  }
+]
