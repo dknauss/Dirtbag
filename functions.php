@@ -2,8 +2,8 @@
 /**
  * Dirtbag theme functions.
  *
- * Dirtbag is deliberately code-light: it ships no theme-authored JavaScript and
- * leans on core block templates. The only PHP behaviour lives here.
+ * Dirtbag is deliberately code-light and leans on core block templates. Its
+ * small table-focus enhancement has no dependencies. PHP behaviour lives here.
  *
  * @package Dirtbag
  */
@@ -79,6 +79,38 @@ if ( ! function_exists( 'dirtbag_site_logo_fallback' ) ) {
 	}
 }
 add_filter( 'render_block', 'dirtbag_site_logo_fallback', 10, 2 );
+
+/**
+ * Make table scrollers keyboard reachable, including without JavaScript.
+ *
+ * The small enhancement removes our tab stop when a table fits, and restores it
+ * on overflow. Leave an author's explicit tabindex alone. With scripts blocked,
+ * the fallback keeps every table reachable (including Safari).
+ *
+ * @param string $block_content Rendered table block.
+ * @return string Table HTML with an owned focus fallback.
+ */
+function dirtbag_table_keyboard_access( $block_content ) {
+	if ( is_admin() ) {
+		return $block_content;
+	}
+	$processor = new WP_HTML_Tag_Processor( $block_content );
+	if ( ! $processor->next_tag( array( 'tag_name' => 'FIGURE', 'class_name' => 'wp-block-table' ) )
+		|| null !== $processor->get_attribute( 'tabindex' ) ) {
+		return $block_content;
+	}
+	$processor->set_attribute( 'tabindex', '0' );
+	$processor->set_attribute( 'data-dirtbag-table-focus', '' );
+	wp_enqueue_script(
+		'dirtbag-table-focus',
+		get_theme_file_uri( 'assets/js/table-focus.js' ),
+		array(),
+		wp_get_theme()->get( 'Version' ),
+		array( 'in_footer' => true, 'strategy' => 'defer' )
+	);
+	return $processor->get_updated_html();
+}
+add_filter( 'render_block_core/table', 'dirtbag_table_keyboard_access' );
 
 if ( ! function_exists( 'dirtbag_theme_root_custom_css' ) ) {
 	/**

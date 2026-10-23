@@ -17,5 +17,6 @@ module.exports = defineConfig({
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 5'] } },
+    { name: 'table-webkit', testMatch: /table-keyboard\.spec\.js/, use: { browserName: 'webkit', viewport: { width: 393, height: 851 } } },
   ],
 });

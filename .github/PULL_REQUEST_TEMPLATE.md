@@ -20,7 +20,7 @@
 ## Constraints
 
 - [ ] No build step added
-- [ ] No theme-authored front-end JavaScript added
+- [ ] Theme-authored JavaScript stays within an approved, documented exception with a usable fallback
 - [ ] No remote assets, trackers, or external fonts added
 - [ ] Release-package hygiene preserved
 

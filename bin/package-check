@@ -261,11 +261,13 @@ if actual_playground_images != allowed_playground_images:
     raise SystemExit(f'Playground image inventory drift. Extra: {extra}; missing: {missing}')
 print('Image inventory OK')
 
-# No bundled frontend assets except required style.css and local images/SVGs.
+# The approved table-focus enhancement is the only bundled JavaScript.
 for p in root.rglob('*'):
     if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):
         continue
     if p.is_file() and p.suffix in {'.js', '.woff', '.woff2', '.ttf', '.otf'}:
+        if p.as_posix() == 'assets/js/table-focus.js':
+            continue
         raise SystemExit(f'Unexpected bundled frontend asset: {p}')
 for p in root.rglob('*.css'):
     if any(part in {'.git', '.claude', '.github', '.githooks', '.planning', 'bin', 'docs', 'playground', 'tests', 'node_modules'} for part in p.parts):

@@ -2,8 +2,9 @@
 
 For reproducible bugs, small improvements, and private security reports, start
 with [Support](SUPPORT.md). Keep changes consistent with Dirtbag's constraints:
-no required build step, theme-authored front-end JavaScript, remote assets, or
-bundled web fonts. The [development guide](docs/development.md) explains the
+no required build step, remote assets, or bundled web fonts. The sole theme-authored
+front-end script handles table keyboard access; further JavaScript needs a clear
+accessibility or interaction requirement and a usable fallback. The [development guide](docs/development.md) explains the
 architecture, local workflow, translations, and release conventions.
 
 ## Make a change
