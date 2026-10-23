@@ -14,19 +14,7 @@
 // itself. The PHP side is unit-tested separately in
 // tests/php/color-scheme-test.php.
 //
-// Local-Studio check, skipped in CI — like truck-icon.spec.js, but for a
-// different and more troubling reason. The first CI run of this spec failed on
-// all six variations with *zero* tags while passing on `default`, which is the
-// signature of the variation never being applied at all: no background, so the
-// theme correctly emits nothing. Booting Playground locally with the same
-// `$args`-into-runPHP construction that tests/ci-style-blueprint.mjs generates
-// reproduces it — the style does not apply.
-//
-// If that is right, the CI per-style matrix has been scanning the *default*
-// style seven times, and `color-contrast` passing "across every style" there is
-// vacuous. Tracked separately; do not un-skip this until CI genuinely applies
-// the variation, or it will fail for a reason that has nothing to do with the
-// tags.
+// Runs in CI as well as locally; CI also verifies the saved layer and runtime.
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
@@ -70,7 +58,6 @@ function colorSchemeFor(hex) {
 
 test.describe(`head colour metadata: ${STYLE}`, () => {
   test(`[${STYLE}] color-scheme and theme-color match the active background`, async ({ page }) => {
-    test.skip(!!process.env.CI, 'CI per-style boot does not apply the variation; local-Studio check');
     await page.goto('/');
 
     const background = declaredBackground(STYLE);
