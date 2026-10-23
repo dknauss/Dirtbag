@@ -21,7 +21,7 @@ Dirtbag is intentionally low machinery. The theme should be understandable by re
 ## Rules of the road
 
 - Keep `style.css` as a header-only file.
-- Do not add theme-authored front-end JavaScript in v1.
+- Keep theme-authored JavaScript limited to the approved, dependency-free table-focus accessibility enhancement. New exceptions need a clear requirement and a usable fallback.
 - Do not add a package manager or build step unless the project explicitly changes direction.
 - Prefer `theme.json`, core block markup, template parts, and patterns.
 - Prefer native HTML and WordPress core behaviour before custom behaviour.
@@ -42,7 +42,7 @@ It does not mean the theme authors zero CSS. Theme styling is expressed the Word
   4. The `.sidebar-thumb` layouts (float + grid, one class toggle). The front-page sidebar posts show a small square thumbnail by their title/date/excerpt, in one of two layouts chosen by a modifier on the `.sidebar-content` group: the default **float** wraps the text *beside and under* the thumb (the magazine look), and `.sidebar-content.is-grid` switches to a fixed thumbnail column + text column (no wrap-under). For a long time the float "didn't work" — lower entries stacked the title under the thumb in live Chrome — and it turned out to be a collision with WordPress core's Post Title link CSS, `.wp-block-post-title :where(a) { display: inline-block; }`: an atomic inline-block box drops below a 60px float whenever it can't fit in the remaining line box, and longer titles in a narrower column fail first, which made it look like a below-the-fold Chrome bug. It is **not** lazy-loading, sub-pixel DPR, or the `.front-grid` subgrid — all ruled out via a minimal WordPress-free repro in [repro/](repro/README.md), confirmed in visible Chrome 149. The float variant fixes it with one scoped rule, `… > .wp-block-post-title :where(a) { display: inline }`; the grid variant needs no fix (its title wraps in its own column). `.sidebar-head` shrinks the sidebar section heading to 22px so it fits one line in the narrow column, and `align-self: end` baselines it against the taller wide-column heading. See [sidebar-thumbnail-layout.md](sidebar-thumbnail-layout.md).
   5. The `.wp-block-gallery` caption + frame. WordPress core renders gallery image captions as a white-on-image overlay with `overflow: auto` — which both fails colour contrast over light images and is the `scrollable-region-focusable` issue removed in 0.1.4. The escape pulls captions back into normal flow below each image (`position: static; overflow: visible; background: none; color: inherit`), and gives each gallery image a 2px `currentColor` frame so the brutalist look holds across all style variations. It is scoped to `.wp-block-gallery.has-nested-images figure.wp-block-image`.
 
-So the accurate claim is: **no CSS files, no enqueued theme stylesheet, no front-end JavaScript** — not "no CSS at all." WordPress core may additionally print block, layout, and global-style assets required by the active blocks.
+So the accurate claim is: **no extra CSS files, no enqueued theme stylesheet, one small table-focus script** — not "no CSS at all." WordPress core may additionally print block, layout, and global-style assets required by the active blocks.
 
 ### Why root `styles.css` needs a guard
 

@@ -27,7 +27,7 @@ Dirtbag is a freely distributable WordPress block theme that's small, simple, du
 
 - **Block theme:** full-site editing templates, template parts, patterns, and `theme.json`.
 - **No build step:** edit files, run the package check, ship the theme.
-- **No theme-authored JavaScript:** core blocks may still load WordPress's own Interactivity API (navigation overlay, enhanced pagination, image lightbox), each with a plain-HTML fallback. Core's runtime is the OEM part; lightweight aftermarket frameworks might be a later, approved exception if we get curious enough — see the [JavaScript policy](#javascript-policy).
+- **One small accessibility script:** table wrappers enter the tab order only while overflowing, including in Safari. It has no dependencies. Core blocks may also load WordPress’s Interactivity API; see the [JavaScript policy](#javascript-policy).
 - **No enqueued theme stylesheet file:** `style.css` contains the WordPress theme header only — and it is *empty*. Dirtbag uses WordPress-native `theme.json`-based styles and aims to keep it simple.
 - **Core-first layout:** uses WordPress core layout, block, and global-style output where needed.
 - **Web-safe typography:** universal font stacks instead of bundled web fonts. (The global styles use web-safe colours as well, just for the hell of it and so we can say "web-safe" in 2026.)
@@ -134,7 +134,7 @@ GSD project memory lives in `.planning/` for local planning context.
 
 ## JavaScript policy
 
-Dirtbag ships no theme-authored front-end JavaScript. WordPress core loads its own where blocks need it — the navigation overlay pulls in the Interactivity API runtime, and the theme opts into two of core’s progressive enhancements: enhanced (no-reload) feed pagination and the image lightbox. All three degrade to plain links and images when JavaScript is off.
+Dirtbag ships one small, dependency-free table-focus script, loaded when a table block renders. It keeps overflowing tables keyboard reachable across browsers and removes redundant tab stops when they fit. With JavaScript disabled or blocked, server-rendered table wrappers retain a tab stop so keyboard scrolling still works; fitting tables then also remain tabbable. Explicit author-supplied `tabindex` values are preserved. WordPress core loads its own where blocks need it — the navigation overlay pulls in the Interactivity API runtime, and the theme opts into two of core’s progressive enhancements: enhanced (no-reload) feed pagination and the image lightbox. All three degrade to plain links and images when JavaScript is off.
 
 When an interaction genuinely needs JavaScript, reach for the OEM part before the aftermarket catalogue:
 

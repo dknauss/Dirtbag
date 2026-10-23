@@ -18,7 +18,7 @@ The script checks:
 - Template and template-part block nesting.
 - Package hygiene.
 - No suspicious raw front-end code patterns.
-- No bundled JavaScript, font files, or extra CSS files.
+- Only the approved table-focus script; no bundled runtimes, font files, or extra CSS files.
 - PHP syntax for pattern files.
 - **Seed/demo content integrity** — reads `playground/seed-content.json` (the seed data, loaded by `seed-content.php`) and checks each post for malformed block delimiters, balanced block nesting, and reconcile artifacts (`core/post-data`, hardcoded theme slug, dev URLs).
 - **No `base64_decode`** in any pattern or Playground PHP file (WordPress.org Theme Check disallows it).
@@ -42,7 +42,7 @@ Before release, verify in WordPress:
 - Site Editor opens without template errors.
 - Front page, home, single, page, archive, search, 404, comments, and footer render correctly.
 - Style variations appear under **Appearance → Editor → Styles**.
-- Default/brutalist mode does not load theme-authored CSS or JavaScript files.
+- No enqueued theme stylesheet; the table-focus script loads when a table block renders.
 
 ## Browser & visual testing tiers
 
@@ -88,3 +88,21 @@ Before each WordPress.org release or static-demo refresh:
 - W3C/Nu HTML validation on rendered pages.
 - Feed validation for RSS feeds.
 - Link check for docs, credits, and site demo content.
+
+## Table keyboard access (#148)
+
+The table keyboard specs run in desktop/mobile Chromium and WebKit, including
+across all seven CI style variations. They use actual Tab and arrow keys on the
+seeded author, category, and date archives and the post containing the table.
+They verify a visible 2-pixel focus outline, horizontal scrolling, forward and
+backward exit, fitting tables without tab stops, resize transitions, inserted
+blocks, and preservation of author-supplied tabindex. A JavaScript-disabled check
+verifies the server-rendered focus fallback. The `scrollable-region-focusable`
+axe rule is now gated, and the table tests scan that rule directly.
+
+Native scroller focus works in current Chromium but WebKit still skips an
+unadorned overflowing figure. That is why a native-only Chromium test is
+insufficient and why #148 permits the small `assets/js/table-focus.js` exception.
+The script observes both wrapper and table dimensions, and discovers inserted
+blocks for core's enhanced pagination. Without scripts, every table has a tab
+stop: accessibility takes precedence over eliminating redundant stops.

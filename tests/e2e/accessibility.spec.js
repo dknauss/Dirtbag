@@ -52,7 +52,7 @@ test.describe('structure (gating)', () => {
 // Other axe findings stay report-only until they are likewise confirmed clean.
 const GATED_RULES = [
   'image-alt', 'link-name', 'label', 'heading-order',
-  'landmark-unique', 'region', 'color-contrast', 'button-name',
+  'landmark-unique', 'region', 'color-contrast', 'button-name', 'scrollable-region-focusable',
 ];
 
 // WP_DEBUG_DISPLAY is on in the Playground blueprint, so a failed query or a

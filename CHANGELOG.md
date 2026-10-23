@@ -6,6 +6,10 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+### Fixed
+
+* Make overflowing table blocks keyboard reachable in Safari as well as Chromium, with visible focus. A small dependency-free script removes redundant tab stops when tables fit and updates them on resize; server-rendered focus remains available when scripts are blocked. Add archive/post keyboard regression tests and WebKit coverage across all styles.
+
 ## [0.1.18] - 2026-08-23
 
 ### Added

@@ -55,9 +55,9 @@ jobs:
         working-directory: tests
         run: npm install
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright Chromium and WebKit
         working-directory: tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Boot WordPress Playground (theme + seeded content)
         env:
@@ -128,9 +128,9 @@ jobs:
         working-directory: tests
         run: npm install
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright Chromium and WebKit
         working-directory: tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Boot WordPress Playground (theme + seed + style)
         env:
