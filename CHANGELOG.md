@@ -8,6 +8,8 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ### Fixed
 
+* Run GitHub browser jobs in the lockfile-matched Playwright image with preinstalled Chromium/WebKit and system libraries. Use `npm ci` and a real browser launch preflight to remove per-job Ubuntu package-install stalls and version drift.
+
 * Replace the package checker’s hand-written PHP lexer with PHP’s native tokenizer. Correct text-domain checks around line-comment closing tags, globally qualified calls, heredoc/nowdoc bodies, and case-insensitive function names; retain the existing checks and add PHP 7/8 regression coverage.
 
 * Make overflowing table blocks keyboard reachable in Safari as well as Chromium, with visible focus. A small dependency-free script removes redundant tab stops when tables fit and updates them on resize; server-rendered focus remains available when scripts are blocked. Add archive/post keyboard regression tests and WebKit coverage across all styles.

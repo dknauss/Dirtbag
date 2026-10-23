@@ -251,6 +251,22 @@ See also: [Testing guide](testing.md) (how to run things) and
 [Backlog](backlog.md) (the manual Release QA checklist).
 
 
+### CI browser installation reliability
+
+The old `ubuntu-latest` jobs each ran `playwright install --with-deps`, which
+repeated Ubuntu package installation eight times. Logs from run `39985475421`
+showed package downloads from `azure.archive.ubuntu.com` taking many minutes before
+browser tests could start. The stalled jobs were installation delays, not style
+failures.
+
+The workflow now derives an official prebuilt Playwright Noble image from the
+committed lockfile, runs both browser jobs inside it on `ubuntu-24.04` hosts, and
+uses `npm ci`. Browsers and system libraries are baked into that image; no APT
+installation is on the matrix's execution path. A real Chromium/WebKit launch
+preflight runs before Playground in every job. See [the browser environment
+notes](../tests/README.md#browser-environment-on-github) for upgrades, guards,
+time limits, and the requirement to verify all seven styles on GitHub.
+
 ### CI runtime and variation verification (#120, #122)
 
 Both browser jobs read `preferredVersions` from `tests/blueprint.json` and pass
@@ -290,7 +306,7 @@ bash .github/scripts/boot-playground.sh tests/blueprint.ci.json 7.0 8.2
 
 The workflow supplies the versions from `tests/ci-versions.mjs`; the generated
 blueprint already includes the requested style. The runner needs Bash, Node/npm,
-Python 3 and curl, available on the Ubuntu CI runner. It uses port 9400 by default;
+Python 3 and curl, available in the Playwright CI container. It uses port 9400 by default;
 `DIRTBAG_BOOT_PORT` selects another free port for isolated local tests. It waits for the CLI's
 `Ready!` signal before sending requests, then requires all four readiness probes:
 the theme stylesheet, a seeded featured image, the published author slug in the
