@@ -2,10 +2,6 @@ name: E2E
 
 # Boots WordPress 7.0 in WordPress Playground with the theme + seeded demo
 # content, then runs the Playwright smoke + accessibility suite against it.
-#
-# NOTE: this harness has not been executed in the authoring environment (no
-# Node/browser there). Treat the first CI run as the shakedown — the Playground
-# CLI flags and the axe baseline (real a11y findings) may need a tweak.
 
 on:
   # Skip the Playground browser suite for docs-only changes: prose, planning
@@ -39,8 +35,18 @@ jobs:
           node-version: '24'
           check-latest: true
 
-      - name: Pin the CI blueprint to this commit
-        run: sed "s/__REF__/${{ github.event.pull_request.head.sha || github.sha }}/" tests/blueprint.json > tests/blueprint.ci.json
+      - name: Generate default CI blueprint
+        env:
+          REF: ${{ github.event.pull_request.head.sha || github.sha }}
+          STYLE: default
+        run: node tests/ci-style-blueprint.mjs > tests/blueprint.ci.json
+
+      - name: Read intended runtime versions
+        id: runtime
+        run: node tests/ci-versions.mjs >> "$GITHUB_OUTPUT"
+
+      - name: Test CI verification guards
+        run: node --test tests/ci-state.test.mjs
 
       - name: Install test dependencies
         working-directory: tests
@@ -75,7 +81,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --wp="${{ steps.runtime.outputs.wp }}" --php="${{ steps.runtime.outputs.php }}" --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Do not send requests while the blueprint is installing and
             # seeding WordPress. Those reads race SQLite writes and can leave an
@@ -151,17 +157,31 @@ jobs:
           echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
+      - name: Verify actual runtime and saved style
+        run: node tests/assert-ci-state.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: default
+
       - name: Run Playwright (smoke + accessibility)
         working-directory: tests
         run: npm test
         env:
           DIRTBAG_BASE_URL: http://127.0.0.1:9400
 
+      - name: Verify runtime and style remained pinned throughout the suite
+        run: node tests/assert-ci-state.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: default
+
       - uses: actions/upload-artifact@v7
         if: ${{ failure() }}
         with:
           name: playwright-report
-          path: tests/playwright-report
+          path: |
+            tests/playwright-report
+            tests/test-results
           retention-days: 7
 
   # Per-style accessibility sweep — axe (with color-contrast gated) against each
@@ -187,6 +207,13 @@ jobs:
           REF: ${{ github.event.pull_request.head.sha || github.sha }}
           STYLE: ${{ matrix.style }}
         run: node tests/ci-style-blueprint.mjs > tests/blueprint.ci.json
+
+      - name: Read intended runtime versions
+        id: runtime
+        run: node tests/ci-versions.mjs >> "$GITHUB_OUTPUT"
+
+      - name: Test CI verification guards
+        run: node --test tests/ci-state.test.mjs
 
       - name: Install test dependencies
         working-directory: tests
@@ -221,7 +248,7 @@ jobs:
             # Capture the server's own output. A failing `runPHP` boot step
             # reports itself here and nowhere else, so without this a boot
             # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
+            npx @wp-playground/cli@3.1.42 server --wp="${{ steps.runtime.outputs.wp }}" --php="${{ steps.runtime.outputs.php }}" --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
             echo $! > /tmp/pg.pid
             # Do not send requests while the blueprint is installing and
             # seeding WordPress. Those reads race SQLite writes and can leave an
@@ -297,9 +324,21 @@ jobs:
           echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
           exit 1
 
+      - name: Verify actual runtime and saved style
+        run: node tests/assert-ci-state.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
+
       - name: Run per-style axe sweep
         working-directory: tests
         run: npx playwright test --config playwright.styles.config.js
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
+
+      - name: Verify runtime and style remained pinned throughout the suite
+        run: node tests/assert-ci-state.mjs
         env:
           DIRTBAG_BASE_URL: http://127.0.0.1:9400
           DIRTBAG_STYLE: ${{ matrix.style }}
@@ -308,5 +347,7 @@ jobs:
         if: ${{ failure() }}
         with:
           name: playwright-report-${{ matrix.style }}
-          path: tests/playwright-report
+          path: |
+            tests/playwright-report
+            tests/test-results
           retention-days: 7

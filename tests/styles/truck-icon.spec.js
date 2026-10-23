@@ -37,11 +37,6 @@ const norm = (s) => (s || '').trim().replace(/\s+/g, ' ');
 
 test.describe(`truck icon colour: ${STYLE}`, () => {
   test(`[${STYLE}] header logo carries the right truckIconFilter`, async ({ page }) => {
-    // The variation's truckIconFilter override is emitted by a real WP/Studio
-    // global-styles request (verified locally) but NOT re-emitted by the CI
-    // Playground per-style boot, so this is a local-Studio check — run it via
-    // `npm run test:styles:truck`. CI keeps a11y + screenshots per style.
-    test.skip(!!process.env.CI, 'truckIconFilter override is not re-emitted in CI Playground; local-Studio check');
     await page.goto('/');
 
     // The masthead logo lives inside the .h-card group; the navigation-overlay

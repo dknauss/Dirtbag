@@ -10,7 +10,9 @@
       "consts": {
         "WP_DEBUG": true,
         "WP_DEBUG_DISPLAY": true,
-        "WP_DEBUG_LOG": true
+        "WP_DEBUG_LOG": true,
+        "AUTOMATIC_UPDATER_DISABLED": true,
+        "DISABLE_WP_CRON": true
       }
     },
     {

@@ -242,3 +242,32 @@ reconcile strips, so `package-check` (seed integrity + reconcile guardrails) run
 
 See also: [Testing guide](testing.md) (how to run things) and
 [Backlog](backlog.md) (the manual Release QA checklist).
+
+
+### CI runtime and variation verification (#120, #122)
+
+Both browser jobs read `preferredVersions` from `tests/blueprint.json` and pass
+explicit `--wp` and `--php` flags to the pinned Playground CLI. Numeric major/minor
+pins allow patch releases in that family. Before Playwright runs,
+`tests/assert-ci-state.mjs` requests a CI-only endpoint from the serving PHP runtime
+and checks its actual WordPress/PHP versions before and after the suite. A CLI
+banner is not the evidence. Automatic updates and request-triggered WP-Cron are
+disabled in this disposable site: an intermediate pinned-runtime run served
+scheduled-maintenance pages during browser tests. The state guard requires both
+constants so an update cannot silently change the target during a run.
+
+The generated blueprint installs `tests/ci-state.php` as a temporary mu-plugin in
+the disposable site. It is not part of the theme release. The endpoint reports the
+live global-styles post, theme linkage, saved payload, and completed-apply receipt.
+The trusted setup runs as the sandbox administrator: unauthenticated saves invoke
+KSES and remove variation settings. No security filters are disabled.
+The guard compares the saved settings/styles with the requested source variation;
+a success receipt alone is insufficient. For `default`, the blueprint first applies
+Terminal, then resets to an empty user layer. A skipped reset leaves the wrong
+receipt or payload and fails, even though default-looking CSS alone could pass.
+
+The per-style suite also checks the browser's body background, head colour metadata,
+and truck-icon CSS custom property/computed filter. The metadata and truck tests now
+run in CI instead of skipping there. `node --test tests/ci-state.test.mjs` proves the
+guard rejects wrong runtime versions, missing resets, mismatched payloads, orphaned
+posts, and a front-end post different from the recorded applied post.
