@@ -61,11 +61,24 @@ jobs:
           ( cd .demo-bundle && zip -rqX ../dirtbag-playground-demo.zip dirtbag )
           unzip -tq dirtbag-playground-demo.zip
 
-      - name: Create GitHub Release + attach ZIPs
+      - name: Extract this version's changelog
+        run: |
+          python3 - <<'PYTHON'
+          import os, pathlib, re
+          version = os.environ['GITHUB_REF_NAME'].removeprefix('v')
+          changelog = pathlib.Path('CHANGELOG.md').read_text()
+          match = re.search(r'^## \[' + re.escape(version) + r'\][^\n]*\n(.*?)(?=^## \[|\Z)', changelog, re.M | re.S)
+          if not match or not match.group(1).strip():
+              raise SystemExit('Missing release changelog for ' + version)
+          pathlib.Path('.release-notes.md').write_text(match.group(0).strip() + '\n')
+          PYTHON
+
+      - name: Create draft GitHub Release + attach ZIPs
         uses: softprops/action-gh-release@v3
         with:
           files: |
             dirtbag.zip
             dirtbag-playground-demo.zip
-          generate_release_notes: true
+          body_path: .release-notes.md
+          draft: true
           fail_on_unmatched_files: true

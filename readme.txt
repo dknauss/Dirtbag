@@ -46,6 +46,8 @@ The official WordPress.org listing is https://wordpress.org/themes/dirtbag/. For
 * Prevent long author bylines from making narrow screens scroll sideways.
 * Left-align captions by default while preserving editor alignment choices.
 * Strengthen archive accessibility, translation checks, and CI coverage for all seven styles.
+* Remove CI browser-installation stalls with preinstalled, lockfile-matched browsers.
+* Consolidate Playground startup and document diagnostics and contributor workflows.
 
 = 0.1.18 =
 * Add active-style colour metadata so dark variations render browser UI with the right colour scheme.

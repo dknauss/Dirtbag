@@ -10,14 +10,22 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ### Fixed
 
-* Allow author bylines to shrink and wrap inside narrow screens, including long unbroken author names.
-* Left-align captions by default while respecting explicit editor alignment.
+* Make overflowing table blocks keyboard accessible in Safari and Chromium, with visible focus, arrow-key scrolling, and a no-script fallback. A small dependency-free script adds a tab stop only while a table overflows and updates it on resize.
+* Keep author bylines within narrow screens, including long unbroken author names, without clipping text or hiding page overflow.
+* Left-align captions by default while preserving explicit editor alignment choices.
+* Test the intended WordPress/PHP versions and verify that each of the seven styles actually renders in CI.
+* Use lockfile-matched, preinstalled Playwright browsers and system libraries to eliminate CI browser-installation stalls and version drift.
+* Replace the package checker's hand-written PHP lexer with PHP's native tokenizer, correcting translation-domain checks around comments, qualified calls, heredocs and case-insensitive function names, with PHP 7/8 regressions.
 
-* Run GitHub browser jobs in the lockfile-matched Playwright image with preinstalled Chromium/WebKit and system libraries. Use `npm ci` and a real browser launch preflight to remove per-job Ubuntu package-install stalls and version drift.
+### Added
 
-* Replace the package checker’s hand-written PHP lexer with PHP’s native tokenizer. Correct text-domain checks around line-comment closing tags, globally qualified calls, heredoc/nowdoc bodies, and case-insensitive function names; retain the existing checks and add PHP 7/8 regression coverage.
+* Accessibility checks for author, category, tag and date archives; keyboard table coverage in Chromium and WebKit; and narrow-screen byline checks across every style.
+* Contributor instructions and component ownership contracts with automated validation.
 
-* Make overflowing table blocks keyboard reachable in Safari as well as Chromium, with visible focus. A small dependency-free script removes redundant tab stops when tables fit and updates them on resize; server-rendered focus remains available when scripts are blocked. Add archive/post keyboard regression tests and WebKit coverage across all styles.
+### Changed
+
+* Consolidate Playground startup into a shared runner with documented diagnostics and runtime/style verification.
+* Include these release notes in the GitHub release and both distribution packages. Stage GitHub releases as drafts so the WordPress.org publishing dry-run can finish before publication.
 
 ## [0.1.18] - 2026-08-23
 
