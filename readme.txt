@@ -4,7 +4,7 @@ Donate link: https://github.com/sponsors/dknauss
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 0.1.18
+Stable tag: 0.1.19
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: full-site-editing, one-column, block-patterns, style-variations, translation-ready, microformats, blog
@@ -40,6 +40,12 @@ Open Appearance > Editor > Styles and choose a style variation.
 The official WordPress.org listing is https://wordpress.org/themes/dirtbag/. For site-specific help, use https://wordpress.org/support/theme/dirtbag/.
 
 == Changelog ==
+
+= 0.1.19 =
+* Keep overflowing tables keyboard accessible, including Safari, with a no-script fallback.
+* Prevent long author bylines from making narrow screens scroll sideways.
+* Left-align captions by default while preserving editor alignment choices.
+* Strengthen archive accessibility, translation checks, and CI coverage for all seven styles.
 
 = 0.1.18 =
 * Add active-style colour metadata so dark variations render browser UI with the right colour scheme.
