@@ -24,9 +24,37 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
+env:
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
 jobs:
+  browser-environment:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.browser.outputs.image }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Test browser image selection
+        run: node --test tests/ci-browser-environment.test.mjs
+      - name: Select the image matching package-lock.json
+        id: browser
+        run: node tests/ci-browser-environment.mjs >> "$GITHUB_OUTPUT"
+
   e2e:
-    runs-on: ubuntu-latest
+    needs: browser-environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: ${{ needs.browser-environment.outputs.image }}
+      options: --init --ipc=host
     steps:
       - uses: actions/checkout@v7
 
@@ -53,11 +81,12 @@ jobs:
 
       - name: Install test dependencies
         working-directory: tests
-        run: npm install
+        run: npm ci
+        timeout-minutes: 5
 
-      - name: Install Playwright Chromium and WebKit
-        working-directory: tests
-        run: npx playwright install --with-deps chromium webkit
+      - name: Verify baked Chromium and WebKit
+        timeout-minutes: 2
+        run: node tests/assert-ci-browsers.mjs
 
       - name: Boot WordPress Playground (theme + seeded content)
         env:
@@ -98,7 +127,12 @@ jobs:
   # style gets its own boot: the blueprint applies the variation at boot via
   # playground/apply-style.php (locally this is the tests/axe-styles.sh loop).
   e2e-styles:
-    runs-on: ubuntu-latest
+    needs: browser-environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: ${{ needs.browser-environment.outputs.image }}
+      options: --init --ipc=host
     strategy:
       fail-fast: false
       matrix:
@@ -126,11 +160,12 @@ jobs:
 
       - name: Install test dependencies
         working-directory: tests
-        run: npm install
+        run: npm ci
+        timeout-minutes: 5
 
-      - name: Install Playwright Chromium and WebKit
-        working-directory: tests
-        run: npx playwright install --with-deps chromium webkit
+      - name: Verify baked Chromium and WebKit
+        timeout-minutes: 2
+        run: node tests/assert-ci-browsers.mjs
 
       - name: Boot WordPress Playground (theme + seed + style)
         env:
