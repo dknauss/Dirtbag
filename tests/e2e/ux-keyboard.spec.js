@@ -29,17 +29,28 @@ test.describe('keyboard and overlay', () => {
   });
 
   test('search and comment inputs are keyboard-operable', async ({ page }) => {
-    await page.goto('/search/');
+    // Three full navigations share one budget; PHP 8.2 on the CI runner can
+    // exhaust the default 30s before the final keyboard assertion. A failed
+    // HTTP response must still fail immediately rather than masquerade as a
+    // missing input. Log timings so a slow request remains visible.
+    test.setTimeout(60_000);
+    async function navigate(url) {
+      const start = Date.now();
+      const response = await page.goto(url);
+      console.log(`keyboard navigation ${url}: HTTP ${response.status()} in ${Date.now() - start}ms`);
+      expect(response.ok(), `keyboard test navigation failed: ${url}`).toBeTruthy();
+    }
+    await navigate('/search/');
     const search = page.locator('.wp-block-search__input').first();
     await search.focus();
     await expect(search).toBeFocused();
 
     // Comment form on a single post (URL discovered from the archive — it embeds
     // the seed date, so it can't be a static slug).
-    await page.goto('/archive/');
+    await navigate('/archive/');
     const href = await page.locator('.wp-block-post-title a').first().getAttribute('href');
     expect(href, 'a post link on the archive').toBeTruthy();
-    await page.goto(href);
+    await navigate(href);
     const comment = page.locator('#comment, .comment-form textarea').first();
     await comment.focus();
     await expect(comment).toBeFocused();
