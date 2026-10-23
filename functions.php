@@ -80,6 +80,42 @@ if ( ! function_exists( 'dirtbag_site_logo_fallback' ) ) {
 }
 add_filter( 'render_block', 'dirtbag_site_logo_fallback', 10, 2 );
 
+if ( ! function_exists( 'dirtbag_table_keyboard_region' ) ) {
+	/**
+	 * Make core Table figures named keyboard-scrollable regions.
+	 *
+	 * Every table gets a tab stop: server rendering cannot detect viewport overflow.
+	 *
+	 * @param string $block_content Rendered block HTML.
+	 * @param array  $block         Parsed block.
+	 * @return string Block HTML with a focusable, labelled table figure.
+	 */
+	function dirtbag_table_keyboard_region( $block_content, $block ) {
+		if ( empty( $block['blockName'] ) || 'core/table' !== $block['blockName'] ) {
+			return $block_content;
+		}
+
+		$processor = new WP_HTML_Tag_Processor( $block_content );
+		if ( ! $processor->next_tag( array( 'tag_name' => 'FIGURE', 'class_name' => 'wp-block-table' ) ) ) {
+			return $block_content;
+		}
+
+		$label = '';
+		if ( preg_match( '/<figcaption\b[^>]*>(.*?)<\/figcaption>/is', $block_content, $caption ) ) {
+			$label = trim( html_entity_decode( wp_strip_all_tags( $caption[1], true ), ENT_QUOTES, get_bloginfo( 'charset' ) ) );
+		}
+		if ( '' === $label ) {
+			$label = __( 'Scrollable table', 'dirtbag' );
+		}
+
+		$processor->set_attribute( 'tabindex', '0' );
+		$processor->set_attribute( 'role', 'region' );
+		$processor->set_attribute( 'aria-label', $label );
+		return $processor->get_updated_html();
+	}
+}
+add_filter( 'render_block', 'dirtbag_table_keyboard_region', 10, 2 );
+
 if ( ! function_exists( 'dirtbag_theme_root_custom_css' ) ) {
 	/**
 	 * The theme's own root custom CSS, as declared in theme.json `styles.css`.
