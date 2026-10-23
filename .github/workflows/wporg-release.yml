@@ -14,7 +14,9 @@ on:
         type: boolean
 
 permissions:
-  contents: read
+  # GitHub exposes draft releases only to callers with push access.
+  # Needed to dry-run the exact asset before publishing its GitHub draft.
+  contents: write
 
 concurrency:
   group: wporg-release
