@@ -22,3 +22,16 @@ jobs:
 
       - name: Run package check
         run: bin/package-check
+
+  # PHP 8 combines qualified names into tokens that PHP 7 emits separately.
+  # Keep the required package-check job above on the minimum supported PHP.
+  i18n-php8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: Test i18n tokenizer on PHP 8
+        run: php tests/php/i18n-test.php

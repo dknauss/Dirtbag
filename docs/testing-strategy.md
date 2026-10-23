@@ -73,6 +73,13 @@ and screen-reader spot checks. Checklist lives in `docs/backlog.md` (Release QA)
 ### 6. TDD — only the islands of real logic
 When actual logic is added, write the failing test first:
 
+- the text-domain checker in `bin/check-i18n.php`, tested by
+  `tests/php/i18n-test.php` against `tests/fixtures/i18n.json`. PHP's built-in
+  tokenizer owns lexical details; the checker only identifies direct WordPress
+  calls and checks the literal domain argument. CI covers PHP 7.2 and 8.2 so both
+  qualified-name token formats are exercised. PHP was already required for lint
+  and unit tests; no WP-CLI or Composer dependency is added. POT generation stays
+  a separate workflow, since domain validation does not establish string coverage.
 - the colour-scheme derivation in `functions.php` — `dirtbag_relative_luminance()`
   and `dirtbag_color_scheme_for()` are pure functions, unit-tested in
   `tests/php/color-scheme-test.php` (dependency-free plain PHP, no PHPUnit; run
