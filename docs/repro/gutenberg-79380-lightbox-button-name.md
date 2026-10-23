@@ -5,14 +5,39 @@ maintainer (`talldan`) triaged the issue as a confirmed `[Type] Bug` / `[Block] 
 and `thisismyurl` opened [WordPress/gutenberg#79440](https://github.com/WordPress/gutenberg/pull/79440)
 implementing this exact fix — a static `aria-label="Enlarge"` in
 `block_core_image_render_lightbox()`, matched to the `triggerButtonAriaLabel` default,
-plus a PHPUnit regression test. Our patch below is kept for provenance only; back
-#79440 rather than opening a duplicate PR. The theme-side fallback
+plus a PHPUnit regression test — though that test was later removed (see the follow-up
+below), so the proposed fix has no regression test in its current diff. Our patch below is kept for provenance
+only; back #79440 rather than opening a duplicate PR. The theme-side fallback
 (`dirtbag_lightbox_trigger_label`, 0.1.12) stays until #79440 merges upstream.
 
 - Issue: <https://github.com/WordPress/gutenberg/issues/79380>
 - Upstream PR (supersedes this): <https://github.com/WordPress/gutenberg/pull/79440>
 - Patch (historical): [`gutenberg-79380-lightbox-button-name.patch`](gutenberg-79380-lightbox-button-name.patch)
 - Theme-side fallback already shipped: `functions.php` (`dirtbag_lightbox_trigger_label`, 0.1.12)
+
+## 2026-07-14 follow-up — test coverage gap flagged upstream
+
+On 2026-07-08 `thisismyurl` **removed** the PHPUnit regression test
+([CI-fix comment](https://github.com/WordPress/gutenberg/pull/79440#issuecomment-4915535190)):
+in the Gutenberg test environment WP Core defines `block_core_image_render_lightbox()`
+first, and the plugin's copy is skipped behind `function_exists()`, so the test
+exercised the un-fixed Core function and failed regardless. The diagnosis is correct —
+but it left the proposed fix without regression coverage. The concern raised in
+the July 14 comment was that the existing Playwright coverage did not isolate
+the static fallback: the E2E suite runs hydrated, so it only ever sees
+the runtime-bound `aria-label`, never the static server-rendered fallback this fix adds.
+
+Dan flagged this on the PR
+([comment](https://github.com/WordPress/gutenberg/pull/79440#issuecomment-4969784312),
+2026-07-14) with two ways to close the gap: a
+`gutenberg_block_core_image_render_lightbox()` alias the unit test can call directly
+(sidestepping the Core shadowing), or a Playwright case with `javaScriptEnabled: false`
+asserting the trigger has an accessible name from the static HTML. Non-blocking; the
+change itself is right.
+
+As of October 22, 2026, #79440 remains open and its diff changes only the PHP
+image-block renderer; no regression test has been added to that PR. The theme-side
+fallback remains necessary pending an upstream fix.
 
 ## The problem
 
