@@ -283,7 +283,8 @@ bash .github/scripts/boot-playground.sh tests/blueprint.ci.json 7.0 8.2
 
 The workflow supplies the versions from `tests/ci-versions.mjs`; the generated
 blueprint already includes the requested style. The runner needs Bash, Node/npm,
-Python 3 and curl, available on the Ubuntu CI runner. It waits for the CLI's
+Python 3 and curl, available on the Ubuntu CI runner. It uses port 9400 by default;
+`DIRTBAG_BOOT_PORT` selects another free port for isolated local tests. It waits for the CLI's
 `Ready!` signal before sending requests, then requires all four readiness probes:
 the theme stylesheet, a seeded featured image, the published author slug in the
 public REST collection, and no rendered PHP/database errors. These are boot/seed

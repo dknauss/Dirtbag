@@ -1,5 +1,5 @@
 // Exercise the actual shell runner with deterministic CLI/HTTP substitutes.
-// No WordPress installation, network writes, or broad process-name cleanup.
+// No WordPress installation, external network, or broad process-name cleanup.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
@@ -7,10 +7,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { createServer } from 'node:net';
 const exec = promisify(execFile);
 const runner = new URL('../.github/scripts/boot-playground.sh', import.meta.url).pathname;
 async function boot(mode) {
   const root = mkdtempSync(join(tmpdir(), 'dirtbag-boot-test-'));
+  const reservation = createServer();
+  await new Promise(resolve => reservation.listen(0, '127.0.0.1', resolve));
+  const port = reservation.address().port;
+  await new Promise(resolve => reservation.close(resolve));
   const bin = join(root, 'bin'); mkdirSync(bin);
   const logs = join(root, 'logs');
   const executable = (name, source) => writeFileSync(join(bin, name), source, { mode: 0o755 });
@@ -21,8 +26,7 @@ const launches = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file)) : [];
 launches.push({pid:process.pid,args:process.argv.slice(2)});
 fs.writeFileSync(file,JSON.stringify(launches));
 if(process.env.FAKE_BOOT_MODE==='dead'){console.error('simulated CLI fatal');process.exit(1);}
-console.log('Ready!');
-setInterval(()=>{},1000);
+require('node:net').createServer(socket=>socket.end()).listen(Number(process.env.DIRTBAG_BOOT_PORT),'127.0.0.1',()=>console.log('Ready!'));
 `);
   executable('curl', `#!/usr/bin/env node
 const fs=require('node:fs');
@@ -41,7 +45,7 @@ process.stdout.write('<img class="wp-post-image">'+((mode==='php-error'||(mode==
   try {
     try {
       result = await exec('bash', [runner, blueprint, '7.0', '8.2'], {
-        env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DIRTBAG_BOOT_LOG_DIR: logs, FAKE_BOOT_ROOT: root, FAKE_BOOT_MODE: mode },
+        env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, DIRTBAG_BOOT_LOG_DIR: logs, DIRTBAG_BOOT_PORT: String(port), FAKE_BOOT_ROOT: root, FAKE_BOOT_MODE: mode },
         timeout: 45000,
       });
       result.status = 0;

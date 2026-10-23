@@ -8,6 +8,12 @@ fi
 BLUEPRINT=$1
 WP_VERSION=$2
 PHP_VERSION=$3
+BOOT_PORT=${DIRTBAG_BOOT_PORT:-9400}
+if ! [[ "$BOOT_PORT" =~ ^[1-9][0-9]{0,4}$ ]] || (( BOOT_PORT > 65535 )); then
+  echo "Invalid Playground port: $BOOT_PORT" >&2
+  exit 2
+fi
+BOOT_URL="http://127.0.0.1:$BOOT_PORT"
 LOG_DIR=${DIRTBAG_BOOT_LOG_DIR:-${RUNNER_TEMP:-/tmp}/dirtbag-playground}
 mkdir -p "$LOG_DIR"
 
@@ -33,10 +39,10 @@ free_port() {
     wait "$pid" 2>/dev/null || true
   fi
   for _ in $(seq 1 15); do
-    (exec 3<>/dev/tcp/127.0.0.1/9400) 2>/dev/null || return 0
+    (exec 3<>/dev/tcp/127.0.0.1/"$BOOT_PORT") 2>/dev/null || return 0
     sleep 1
   done
-  echo "::error::Port 9400 remains occupied after stopping the owned process group."
+  echo "::error::Port $BOOT_PORT remains occupied after stopping the owned process group."
   return 1
 }
 boot() {
@@ -45,7 +51,7 @@ boot() {
   # failure is unattributable.
   # setsid before exec keeps the recorded PID equal to the owned group ID.
   python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
-    npx @wp-playground/cli@3.1.42 server --wp="$WP_VERSION" --php="$PHP_VERSION" --workers=6 --port 9400 --blueprint="$BLUEPRINT" > "$LOG_DIR/pg.log" 2>&1 &
+    npx @wp-playground/cli@3.1.42 server --wp="$WP_VERSION" --php="$PHP_VERSION" --workers=6 --port "$BOOT_PORT" --blueprint="$BLUEPRINT" > "$LOG_DIR/pg.log" 2>&1 &
   echo $! > "$LOG_DIR/pg.pid"
   # Do not send requests while the blueprint is installing and
   # seeding WordPress. Those reads race SQLite writes and can leave an
@@ -73,7 +79,7 @@ boot() {
   # runPHP/worker problem) — the two have different fixes.
   for i in $(seq 1 60); do
     theme_ok=no; image_ok=no; author_ok=no; clean_ok=no
-    if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
+    if curl -sfo /dev/null "$BOOT_URL/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
     # One fetch, two conditions. WP_DEBUG_DISPLAY is on, so a query
     # that fails anyway — the ready signal and six workers above make
     # that rarer, not impossible — prints `<div id="error">` ahead of
@@ -81,11 +87,11 @@ boot() {
     # landmark, and axe reports `region`, blaming the theme for a boot
     # that actually corrupted its own SQLite database. A page carrying
     # rendered PHP/database errors is a failed boot, not a regression.
-    if curl -sf http://127.0.0.1:9400/ > "$LOG_DIR/pg.home"; then
+    if curl -sf "$BOOT_URL/" > "$LOG_DIR/pg.home"; then
       if grep -q wp-post-image "$LOG_DIR/pg.home"; then image_ok=yes; fi
       if ! grep -qE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' "$LOG_DIR/pg.home"; then clean_ok=yes; fi
     fi
-    if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
+    if curl -sf "$BOOT_URL/wp-json/wp/v2/users?per_page=100" | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
     printf 'after %ss: theme-installed=%s featured-image=%s published-author-slug=%s no-php-errors=%s\n' \
       "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$clean_ok" > "$LOG_DIR/pg.probe"
     if [ "$theme_ok" = yes ] && [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$clean_ok" = yes ]; then return 0; fi
@@ -100,13 +106,13 @@ for attempt in 1 2 3; do
   echo "boot attempt $attempt failed; retrying" >&2
   # Say why. Without this the only signal is "failed".
   echo "--- diagnostics for attempt $attempt ---" >&2
-  echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
+  echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' "$BOOT_URL/" 2>&1)" >&2
   echo "last probe state: $(cat "$LOG_DIR/pg.probe" 2>/dev/null || echo '(never probed)')" >&2
   # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
   # into the response body — so capture the body, not just the status.
   # `curl -f` suppresses output on a 5xx, so this one must omit it.
   echo "--- response body (first 60 lines) ---" >&2
-  curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
+  curl -s "$BOOT_URL/" 2>&1 | head -60 >&2 || echo "(no response)" >&2
   # Name the rendered errors directly: a notice further down the page
   # would not appear in the 60-line head, and `no-php-errors=no` on
   # its own does not say which query or file failed.
