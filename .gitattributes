@@ -14,3 +14,5 @@
 /tools/ export-ignore
 /components.json export-ignore
 /workspace-components.json export-ignore
+
+/CONTRIBUTING.md export-ignore

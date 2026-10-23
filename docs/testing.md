@@ -31,7 +31,7 @@ A dev-only Playwright harness lives in `tests/` (export-ignored, not shipped). I
 
 Run it against the local Studio site or any URL — see [`tests/README.md`](../tests/README.md). Prefer running these headless checks in-session over handing off — see **Browser & visual testing tiers** below and the project [`CLAUDE.md`](../CLAUDE.md).
 
-In CI, `.github/workflows/e2e.yml` boots WordPress 7.0 in WordPress Playground with the theme and seeded demo content, then runs the suite. (First-run note: the Playground boot and the axe baseline may need tuning, since the harness was authored without a local Node/browser environment.)
+In CI, `.github/workflows/e2e.yml` boots the WordPress 7.0 / PHP 8.2 families in a disposable Playground with seeded content. Runtime and saved-style checks run before and after the browser suite; see [the CI verification notes](testing-strategy.md#ci-runtime-and-variation-verification-120-122). The axe suite covers author, category, tag, and monthly date archives on desktop and mobile, checking archive identity and seeded posts before scanning.
 
 ## Manual WordPress checks
 

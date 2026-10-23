@@ -4,9 +4,27 @@
 // docs/testing-strategy.md → "Implementation plan").
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Representative seeded pages. Adjust slugs if the seed changes.
 const PAGES = ['/', '/archive/', '/search/', '/about/', '/colophon/'];
+
+// Derive archive URLs from the newest published seed post, so fixtures and
+// dates cannot silently drift. That post must appear on each archive's first page.
+const seed = JSON.parse(fs.readFileSync(path.join(__dirname, '../../playground/seed-content.json'), 'utf8'));
+const archivePost = seed.posts.filter((post) => post.post_type === 'post' && post.post_status === 'publish')
+  .sort((a, b) => b.post_date.localeCompare(a.post_date))[0];
+const archiveAuthor = seed.users.find((user) => user.user_login === archivePost.author_login);
+const archiveCategory = archivePost.terms.category[0];
+const archiveTag = archivePost.terms.post_tag[0];
+const [archiveYear, archiveMonth] = archivePost.post_date.split('-');
+const ARCHIVES = [
+  { kind: 'author', url: `/author/${archiveAuthor.user_nicename}/`, bodyClass: `author-${archiveAuthor.user_nicename}`, heading: archiveAuthor.display_name },
+  { kind: 'category', url: `/category/${archiveCategory}/`, bodyClass: `category-${archiveCategory}`, heading: seed.terms.find((term) => term.taxonomy === 'category' && term.slug === archiveCategory).name },
+  { kind: 'tag', url: `/tag/${archiveTag}/`, bodyClass: `tag-${archiveTag}`, heading: seed.terms.find((term) => term.taxonomy === 'post_tag' && term.slug === archiveTag).name },
+  { kind: 'date', url: `/${archiveYear}/${archiveMonth}/`, bodyClass: 'date', heading: archiveYear },
+];
 
 test.describe('structure (gating)', () => {
   test('front page has exactly one h1', async ({ page }) => {
@@ -97,6 +115,23 @@ test.describe('axe (wcag2a/aa)', () => {
     test(`axe: ${path}`, async ({ page }, testInfo) => {
       await page.goto(path);
       await checkAxe(page, path, testInfo);
+    });
+  }
+
+  for (const archive of ARCHIVES) {
+    test(`axe: ${archive.kind} archive`, async ({ page }, testInfo) => {
+      const response = await page.goto(archive.url);
+      expect(response.status(), `${archive.kind} archive must return 200, not a 404 or maintenance page`).toBe(200);
+      expect(await page.locator('body').evaluate((body, name) => body.classList.contains(name), archive.bodyClass)).toBe(true);
+      const main = page.locator('main#main-content');
+      await expect(main).toBeVisible();
+      await expect(page.locator('h1')).toHaveCount(1);
+      await expect(main.locator('h1')).toContainText(archive.heading);
+      await expect(main.locator(`.wp-block-post-title a[href$="/${archivePost.post_name}/"]`)).toBeVisible();
+      await expect(page.locator('header').first()).toBeVisible();
+      await expect(page.locator('footer').first()).toBeVisible();
+      await expect(page.locator('nav[aria-label]').first()).toBeVisible();
+      await checkAxe(page, `${archive.kind} archive`, testInfo);
     });
   }
 
