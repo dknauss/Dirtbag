@@ -6,7 +6,12 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+## [0.1.19] - 2026-10-23
+
 ### Fixed
+
+* Allow author bylines to shrink and wrap inside narrow screens, including long unbroken author names.
+* Left-align captions by default while respecting explicit editor alignment.
 
 * Run GitHub browser jobs in the lockfile-matched Playwright image with preinstalled Chromium/WebKit and system libraries. Use `npm ci` and a real browser launch preflight to remove per-job Ubuntu package-install stalls and version drift.
 
@@ -229,7 +234,9 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 - Initial Dirtbag block theme release.
 
-[Unreleased]: https://github.com/dknauss/dirtbag/compare/v0.1.17...HEAD
+[Unreleased]: https://github.com/dknauss/dirtbag/compare/v0.1.19...HEAD
+[0.1.19]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.19
+[0.1.18]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.18
 [0.1.17]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.17
 [0.1.16]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.16
 [0.1.15]: https://github.com/dknauss/dirtbag/releases/tag/v0.1.15

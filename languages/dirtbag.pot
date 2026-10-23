@@ -2,14 +2,14 @@
 # This file is distributed under the GNU General Public License v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Dirtbag 0.1.18\n"
+"Project-Id-Version: Dirtbag 0.1.19\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/dirtbag\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-06-26T14:31:03+00:00\n"
+"POT-Creation-Date: 2026-10-23T17:36:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: dirtbag\n"
@@ -40,7 +40,7 @@ msgstr ""
 msgid "https://github.com/dknauss"
 msgstr ""
 
-#: functions.php:113
+#: functions.php:257
 msgid "Enlarge image"
 msgstr ""
 
