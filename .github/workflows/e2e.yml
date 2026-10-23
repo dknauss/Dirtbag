@@ -169,6 +169,12 @@ jobs:
         env:
           DIRTBAG_BASE_URL: http://127.0.0.1:9400
 
+      - name: Verify runtime and style remained pinned throughout the suite
+        run: node tests/assert-ci-state.mjs
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: default
+
       - uses: actions/upload-artifact@v7
         if: ${{ failure() }}
         with:
@@ -327,6 +333,12 @@ jobs:
       - name: Run per-style axe sweep
         working-directory: tests
         run: npx playwright test --config playwright.styles.config.js
+        env:
+          DIRTBAG_BASE_URL: http://127.0.0.1:9400
+          DIRTBAG_STYLE: ${{ matrix.style }}
+
+      - name: Verify runtime and style remained pinned throughout the suite
+        run: node tests/assert-ci-state.mjs
         env:
           DIRTBAG_BASE_URL: http://127.0.0.1:9400
           DIRTBAG_STYLE: ${{ matrix.style }}

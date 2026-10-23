@@ -29,11 +29,8 @@ test.describe('keyboard and overlay', () => {
   });
 
   test('search and comment inputs are keyboard-operable', async ({ page }) => {
-    // Three full navigations share one budget; PHP 8.2 on the CI runner can
-    // exhaust the default 30s before the final keyboard assertion. A failed
-    // HTTP response must still fail immediately rather than masquerade as a
-    // missing input. Log timings so a slow request remains visible.
-    test.setTimeout(60_000);
+    // Fail immediately on a maintenance/error page instead of waiting for a
+    // form field that cannot exist. Retain timings in the CI log.
     async function navigate(url) {
       const start = Date.now();
       const response = await page.goto(url);

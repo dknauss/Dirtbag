@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { verifyState } from './assert-ci-state.mjs';
 const state = (style) => ({
-  wp: '7.0.7', php: '8.2.31', stylesheet: 'dirtbag', post_id: 4, terms: ['dirtbag'],
+  wp: '7.0.7', php: '8.2.31', automatic_updates_disabled: true, cron_disabled: true, stylesheet: 'dirtbag', post_id: 4, terms: ['dirtbag'],
   receipt: { style, post_id: 4 },
   payload: style === 'default' ? { isGlobalStylesUserThemeJSON: true, settings: [], styles: [] }
     : { ...JSON.parse(readFileSync(new URL(`../styles/${style}.json`, import.meta.url))), isGlobalStylesUserThemeJSON: true },
@@ -29,4 +29,9 @@ test('rejects orphaned posts, a different live post, and an unapplied variation'
   assert.throws(() => verifyState({ ...state('terminal'), post_id: 5 }, 'terminal'), /different global-styles/);
   const absent = state('default'); absent.receipt.style = 'terminal';
   assert.throws(() => verifyState(absent, 'terminal'), /saved settings|saved styles/);
+});
+
+test('rejects a test runtime that may update itself during the suite', () => {
+  assert.throws(() => verifyState({ ...state('default'), automatic_updates_disabled: false }, 'default'), /disable automatic/);
+  assert.throws(() => verifyState({ ...state('default'), cron_disabled: false }, 'default'), /disable request-triggered/);
 });

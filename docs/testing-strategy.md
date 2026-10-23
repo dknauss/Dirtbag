@@ -250,7 +250,11 @@ Both browser jobs read `preferredVersions` from `tests/blueprint.json` and pass
 explicit `--wp` and `--php` flags to the pinned Playground CLI. Numeric major/minor
 pins allow patch releases in that family. Before Playwright runs,
 `tests/assert-ci-state.mjs` requests a CI-only endpoint from the serving PHP runtime
-and checks its actual WordPress/PHP versions. A CLI banner is not the evidence.
+and checks its actual WordPress/PHP versions before and after the suite. A CLI
+banner is not the evidence. Automatic updates and request-triggered WP-Cron are
+disabled in this disposable site: an intermediate pinned-runtime run served
+scheduled-maintenance pages during browser tests. The state guard requires both
+constants so an update cannot silently change the target during a run.
 
 The generated blueprint installs `tests/ci-state.php` as a temporary mu-plugin in
 the disposable site. It is not part of the theme release. The endpoint reports the

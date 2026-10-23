@@ -8,6 +8,8 @@ export function verifyState(state, style, expectedVersions = versions) {
     const actual = state[key]?.split('.');
     assert.deepEqual(actual?.slice(0, expectedVersions[key].split('.').length), expectedVersions[key].split('.'), `${key} runtime mismatch: ${state[key]}`);
   }
+  assert.equal(state.automatic_updates_disabled, true, 'CI must disable automatic updates');
+  assert.equal(state.cron_disabled, true, 'CI must disable request-triggered cron');
   assert.equal(state.stylesheet, 'dirtbag', 'wrong active theme');
   assert.ok(state.post_id > 0, 'no live global-styles post');
   assert.ok(state.terms.includes('dirtbag'), 'global-styles post is not linked to Dirtbag');

@@ -11,6 +11,8 @@ add_action( 'rest_api_init', function () {
 			return array(
 				'wp' => get_bloginfo( 'version' ),
 				'php' => PHP_VERSION,
+				'automatic_updates_disabled' => defined( 'AUTOMATIC_UPDATER_DISABLED' ) && AUTOMATIC_UPDATER_DISABLED,
+				'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 				'stylesheet' => get_stylesheet(),
 				'post_id' => $id,
 				'terms' => is_wp_error( $terms ) ? array() : $terms,
