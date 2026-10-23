@@ -36,3 +36,9 @@ DIRTBAG_BASE_URL=https://your-site.test npm test
 `.github/workflows/e2e.yml` boots WordPress 7.0 in WordPress Playground (theme
 installed at the tested commit + seeded demo content) and runs this suite.
 `.github/workflows/package-check.yml` runs the static checks on every push/PR.
+
+
+Both browser jobs use `.github/scripts/boot-playground.sh`. Run its deterministic
+failure-path checks with `node --test tests/boot-playground.test.mjs` from the repo
+root. See [boot diagnostics](../docs/testing-strategy.md#shared-playground-boot-and-diagnostics-128)
+for probe meanings, PHP diagnostic output, retry behavior and failure artifacts.

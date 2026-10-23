@@ -271,3 +271,55 @@ and truck-icon CSS custom property/computed filter. The metadata and truck tests
 run in CI instead of skipping there. `node --test tests/ci-state.test.mjs` proves the
 guard rejects wrong runtime versions, missing resets, mismatched payloads, orphaned
 posts, and a front-end post different from the recorded applied post.
+
+
+### Shared Playground boot and diagnostics (#128)
+
+Both E2E jobs call [the same runner](../.github/scripts/boot-playground.sh):
+
+```sh
+bash .github/scripts/boot-playground.sh tests/blueprint.ci.json 7.0 8.2
+```
+
+The workflow supplies the versions from `tests/ci-versions.mjs`; the generated
+blueprint already includes the requested style. The runner needs Bash, Node/npm,
+Python 3 and curl, available on the Ubuntu CI runner. It waits for the CLI's
+`Ready!` signal before sending requests, then requires all four readiness probes:
+the theme stylesheet, a seeded featured image, the published author slug in the
+public REST collection, and no rendered PHP/database errors. These are boot/seed
+checks; the separate before/after runtime and saved-style guard proves the target
+versions and applied style.
+
+`published-author-slug` is intentionally a **visibility** check. The public users
+collection depends on published posts; a missing slug alone does not prove a user
+identity write failed. The seed's identity read-back assertions and the browser's
+`link-name` checks cover the actual identity/markup concerns. Inspect those results
+before changing user seeding.
+
+Inside Playground PHP, use `dirtbag_playground_stderr()` from
+[`playground/stderr.php`](../playground/stderr.php). It writes to `php://stderr`,
+which reaches the captured server log under both CLI and web SAPIs. Do not use the
+CLI-only `STDERR` constant. `error_log()` is only the helper's fallback; its output
+has not reliably appeared in Playground CI logs.
+
+On failure, inspect the named probe values, HTTP status, response excerpt,
+rendered PHP errors and server-log tail in the job log. Full per-attempt `.log`,
+`.probe` and `.home` files are retained under
+`${RUNNER_TEMP}/dirtbag-playground` and included in the failure artifact, alongside
+Playwright test context. `DIRTBAG_BOOT_LOG_DIR` overrides this directory for
+isolated tests. A missing CLI ready signal, missing seed content, wrong runtime,
+and an axe violation are different failures; diagnose the first failing layer.
+
+Retries remain bounded to three launches. Each starts a fresh CLI process in its
+own session; failure cleanup terminates that process group and its workers,
+without killing other Playground instances by name or arbitrary processes on a
+port. Probe/body files are cleared per attempt, so diagnostics cannot reuse an
+old response. The historical later-retry/WAL theory was not established and is
+not a reason to add database resets or weaken checks. Reopen it only with a new
+reproduction and the retained per-attempt evidence.
+
+`node --test tests/boot-playground.test.mjs` exercises the actual shell runner with
+deterministic CLI/HTTP substitutes: success with explicit version flags, a missing
+theme despite passing content probes, rendered PHP errors, CLI death, and recovery
+after an owned failed process is stopped. The full CI matrix exercises real
+Playground boots and browsers.

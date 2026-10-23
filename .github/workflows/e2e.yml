@@ -48,6 +48,9 @@ jobs:
       - name: Test CI verification guards
         run: node --test tests/ci-state.test.mjs
 
+      - name: Test shared boot runner
+        run: node --test tests/boot-playground.test.mjs
+
       - name: Install test dependencies
         working-directory: tests
         run: npm install
@@ -57,105 +60,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Boot WordPress Playground (theme + seeded content)
-        run: |
-          # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
-          # connection-refused boot crash (WordPress/wordpress-playground#3830,
-          # fixed by PR #3833 — stale SQLite WAL .ht.sqlite-shm lock cleanup).
-          # GitHub's four-CPU runner defaults to three request workers, and the
-          # CLI warns that fewer than six increases file-lock deadlock risk.
-          # Pin six: the three-worker default intermittently leaves SQLite
-          # returning "Database Error" for an otherwise-live server.
-          free_port() {
-            # The server's worker children can outlive a kill of the npx wrapper
-            # and keep port 9400 bound, so a naive retry dies with EADDRINUSE.
-            # Kill by name and by port, then wait until 9400 is actually free.
-            for _ in $(seq 1 15); do
-              pkill -f "@wp-playground/cli" 2>/dev/null || true
-              { command -v fuser >/dev/null && fuser -k 9400/tcp 2>/dev/null; } || true
-              (exec 3<>/dev/tcp/127.0.0.1/9400) 2>/dev/null || return 0
-              sleep 1
-            done
-            return 0
-          }
-          boot() {
-            # Capture the server's own output. A failing `runPHP` boot step
-            # reports itself here and nowhere else, so without this a boot
-            # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --wp="${{ steps.runtime.outputs.wp }}" --php="${{ steps.runtime.outputs.php }}" --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
-            echo $! > /tmp/pg.pid
-            # Do not send requests while the blueprint is installing and
-            # seeding WordPress. Those reads race SQLite writes and can leave an
-            # otherwise-live server returning "Database Error". Wait for the
-            # CLI's own ready signal first; bail early if the server dies.
-            : > /tmp/pg.probe
-            cli_ready=no
-            for i in $(seq 1 60); do
-              if grep -q 'Ready!' /tmp/pg.log; then cli_ready=yes; break; fi
-              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
-              printf 'after %ss: cli-ready=no\n' "$(( i * 2 ))" > /tmp/pg.probe
-              sleep 2
-            done
-            [ "$cli_ready" = yes ] || return 1
-
-            # Ready only when the homepage renders the seeded featured image,
-            # the seeded author's nicename survived (a flaky boot can empty
-            # user identity fields, which later fails the axe link-name gate as
-            # a nameless author link), AND the page is free of rendered
-            # PHP/database errors.
-            #
-            # Record each condition separately. Collapsed into one `if`, a
-            # timeout could not say whether the theme never installed (a
-            # git:directory fetch problem) or installed but never seeded (a
-            # runPHP/worker problem) — the two have different fixes.
-            for i in $(seq 1 60); do
-              theme_ok=no; image_ok=no; author_ok=no; clean_ok=no
-              if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
-              # One fetch, two conditions. WP_DEBUG_DISPLAY is on, so a query
-              # that fails anyway — the ready signal and six workers above make
-              # that rarer, not impossible — prints `<div id="error">` ahead of
-              # the doctype. The parser lands it in <body> outside every
-              # landmark, and axe reports `region`, blaming the theme for a boot
-              # that actually corrupted its own SQLite database. A page carrying
-              # rendered PHP/database errors is a failed boot, not a regression.
-              if curl -sf http://127.0.0.1:9400/ > /tmp/pg.home; then
-                if grep -q wp-post-image /tmp/pg.home; then image_ok=yes; fi
-                if ! grep -qE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home; then clean_ok=yes; fi
-              fi
-              if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
-              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s no-php-errors=%s\n' \
-                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$clean_ok" > /tmp/pg.probe
-              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$clean_ok" = yes ]; then return 0; fi
-              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
-              sleep 2
-            done
-            return 1
-          }
-          for attempt in 1 2 3; do
-            echo "::group::Playground boot attempt $attempt"
-            if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
-            echo "boot attempt $attempt failed; retrying" >&2
-            # Say why. Without this the only signal is "failed".
-            echo "--- diagnostics for attempt $attempt ---" >&2
-            echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
-            echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
-            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
-            # into the response body — so capture the body, not just the status.
-            # `curl -f` suppresses output on a 5xx, so this one must omit it.
-            echo "--- response body (first 60 lines) ---" >&2
-            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
-            # Name the rendered errors directly: a notice further down the page
-            # would not appear in the 60-line head, and `no-php-errors=no` on
-            # its own does not say which query or file failed.
-            echo "--- rendered PHP/database errors on / ---" >&2
-            grep -nE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home 2>/dev/null | head -3 >&2 || echo "(none)" >&2
-            echo "--- last 40 lines of the Playground server log ---" >&2
-            tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
-            echo "::endgroup::"
-            kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
-            free_port
-          done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
-          exit 1
+        env:
+          WP_VERSION: ${{ steps.runtime.outputs.wp }}
+          PHP_VERSION: ${{ steps.runtime.outputs.php }}
+        run: bash .github/scripts/boot-playground.sh tests/blueprint.ci.json "$WP_VERSION" "$PHP_VERSION"
 
       - name: Verify actual runtime and saved style
         run: node tests/assert-ci-state.mjs
@@ -182,6 +90,7 @@ jobs:
           path: |
             tests/playwright-report
             tests/test-results
+            ${{ runner.temp }}/dirtbag-playground
           retention-days: 7
 
   # Per-style accessibility sweep — axe (with color-contrast gated) against each
@@ -224,105 +133,10 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Boot WordPress Playground (theme + seed + style)
-        run: |
-          # Pinned to 3.1.42, the release that fixes the intermittent EBADF /
-          # connection-refused boot crash (WordPress/wordpress-playground#3830,
-          # fixed by PR #3833 — stale SQLite WAL .ht.sqlite-shm lock cleanup).
-          # GitHub's four-CPU runner defaults to three request workers, and the
-          # CLI warns that fewer than six increases file-lock deadlock risk.
-          # Pin six: the three-worker default intermittently leaves SQLite
-          # returning "Database Error" for an otherwise-live server.
-          free_port() {
-            # The server's worker children can outlive a kill of the npx wrapper
-            # and keep port 9400 bound, so a naive retry dies with EADDRINUSE.
-            # Kill by name and by port, then wait until 9400 is actually free.
-            for _ in $(seq 1 15); do
-              pkill -f "@wp-playground/cli" 2>/dev/null || true
-              { command -v fuser >/dev/null && fuser -k 9400/tcp 2>/dev/null; } || true
-              (exec 3<>/dev/tcp/127.0.0.1/9400) 2>/dev/null || return 0
-              sleep 1
-            done
-            return 0
-          }
-          boot() {
-            # Capture the server's own output. A failing `runPHP` boot step
-            # reports itself here and nowhere else, so without this a boot
-            # failure is unattributable.
-            npx @wp-playground/cli@3.1.42 server --wp="${{ steps.runtime.outputs.wp }}" --php="${{ steps.runtime.outputs.php }}" --workers=6 --port 9400 --blueprint=tests/blueprint.ci.json > /tmp/pg.log 2>&1 &
-            echo $! > /tmp/pg.pid
-            # Do not send requests while the blueprint is installing and
-            # seeding WordPress. Those reads race SQLite writes and can leave an
-            # otherwise-live server returning "Database Error". Wait for the
-            # CLI's own ready signal first; bail early if the server dies.
-            : > /tmp/pg.probe
-            cli_ready=no
-            for i in $(seq 1 60); do
-              if grep -q 'Ready!' /tmp/pg.log; then cli_ready=yes; break; fi
-              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
-              printf 'after %ss: cli-ready=no\n' "$(( i * 2 ))" > /tmp/pg.probe
-              sleep 2
-            done
-            [ "$cli_ready" = yes ] || return 1
-
-            # Ready only when the homepage renders the seeded featured image,
-            # the seeded author's nicename survived (a flaky boot can empty
-            # user identity fields, which later fails the axe link-name gate as
-            # a nameless author link), AND the page is free of rendered
-            # PHP/database errors.
-            #
-            # Record each condition separately. Collapsed into one `if`, a
-            # timeout could not say whether the theme never installed (a
-            # git:directory fetch problem) or installed but never seeded (a
-            # runPHP/worker problem) — the two have different fixes.
-            for i in $(seq 1 60); do
-              theme_ok=no; image_ok=no; author_ok=no; clean_ok=no
-              if curl -sfo /dev/null "http://127.0.0.1:9400/wp-content/themes/dirtbag/style.css"; then theme_ok=yes; fi
-              # One fetch, two conditions. WP_DEBUG_DISPLAY is on, so a query
-              # that fails anyway — the ready signal and six workers above make
-              # that rarer, not impossible — prints `<div id="error">` ahead of
-              # the doctype. The parser lands it in <body> outside every
-              # landmark, and axe reports `region`, blaming the theme for a boot
-              # that actually corrupted its own SQLite database. A page carrying
-              # rendered PHP/database errors is a failed boot, not a regression.
-              if curl -sf http://127.0.0.1:9400/ > /tmp/pg.home; then
-                if grep -q wp-post-image /tmp/pg.home; then image_ok=yes; fi
-                if ! grep -qE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home; then clean_ok=yes; fi
-              fi
-              if curl -sf 'http://127.0.0.1:9400/wp-json/wp/v2/users?per_page=100' | grep -q '"slug":"roadside-archivist"'; then author_ok=yes; fi
-              printf 'after %ss: theme-installed=%s featured-image=%s author-nicename=%s no-php-errors=%s\n' \
-                "$(( i * 2 ))" "$theme_ok" "$image_ok" "$author_ok" "$clean_ok" > /tmp/pg.probe
-              if [ "$image_ok" = yes ] && [ "$author_ok" = yes ] && [ "$clean_ok" = yes ]; then return 0; fi
-              kill -0 "$(cat /tmp/pg.pid)" 2>/dev/null || return 1
-              sleep 2
-            done
-            return 1
-          }
-          for attempt in 1 2 3; do
-            echo "::group::Playground boot attempt $attempt"
-            if boot; then echo "seeded after attempt $attempt"; echo "::endgroup::"; exit 0; fi
-            echo "boot attempt $attempt failed; retrying" >&2
-            # Say why. Without this the only signal is "failed".
-            echo "--- diagnostics for attempt $attempt ---" >&2
-            echo "HTTP: $(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9400/ 2>&1)" >&2
-            echo "last probe state: $(cat /tmp/pg.probe 2>/dev/null || echo '(never probed)')" >&2
-            # With WP_DEBUG_DISPLAY on (tests/blueprint.json), a fatal renders
-            # into the response body — so capture the body, not just the status.
-            # `curl -f` suppresses output on a 5xx, so this one must omit it.
-            echo "--- response body (first 60 lines) ---" >&2
-            curl -s http://127.0.0.1:9400/ 2>&1 | head -60 >&2 || echo "(no response)" >&2
-            # Name the rendered errors directly: a notice further down the page
-            # would not appear in the 60-line head, and `no-php-errors=no` on
-            # its own does not say which query or file failed.
-            echo "--- rendered PHP/database errors on / ---" >&2
-            grep -nE 'class="wpdberror"|<b>(Fatal error|Parse error|Warning|Notice|Deprecated)</b>' /tmp/pg.home 2>/dev/null | head -3 >&2 || echo "(none)" >&2
-            echo "--- last 40 lines of the Playground server log ---" >&2
-            tail -40 /tmp/pg.log >&2 2>/dev/null || echo "(no server log)" >&2
-            echo "::endgroup::"
-            kill "$(cat /tmp/pg.pid)" 2>/dev/null || true
-            free_port
-          done
-          echo "::error::Playground failed to boot (wp-post-image + author nicename + no rendered PHP errors) after 3 attempts; aborting so the suite does not run against a mis-seeded site."
-          exit 1
+        env:
+          WP_VERSION: ${{ steps.runtime.outputs.wp }}
+          PHP_VERSION: ${{ steps.runtime.outputs.php }}
+        run: bash .github/scripts/boot-playground.sh tests/blueprint.ci.json "$WP_VERSION" "$PHP_VERSION"
 
       - name: Verify actual runtime and saved style
         run: node tests/assert-ci-state.mjs
@@ -350,4 +164,5 @@ jobs:
           path: |
             tests/playwright-report
             tests/test-results
+            ${{ runner.temp }}/dirtbag-playground
           retention-days: 7
