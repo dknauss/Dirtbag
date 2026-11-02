@@ -6,6 +6,10 @@ This project follows the spirit of [Keep a Changelog](https://keepachangelog.com
 
 ## [Unreleased]
 
+### Changed
+
+* Require PHP 7.4+, matching WordPress 7.0's minimum (was 7.2).
+
 ## [0.1.19] - 2026-10-23
 
 ### Fixed

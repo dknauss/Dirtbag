@@ -1,7 +1,7 @@
 <?php
 /**
  * Check literal WordPress text domains using PHP's own lexical scanner.
- * Development tooling only; PHP 7.2 compatible, no WordPress bootstrap or eval.
+ * Development tooling only; PHP 7.4 compatible, no WordPress bootstrap or eval.
  */
 
 function dirtbag_i18n_violations( $source ) {
