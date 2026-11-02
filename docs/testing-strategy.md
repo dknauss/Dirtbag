@@ -76,7 +76,7 @@ When actual logic is added, write the failing test first:
 - the text-domain checker in `bin/check-i18n.php`, tested by
   `tests/php/i18n-test.php` against `tests/fixtures/i18n.json`. PHP's built-in
   tokenizer owns lexical details; the checker only identifies direct WordPress
-  calls and checks the literal domain argument. CI covers PHP 7.2 and 8.2 so both
+  calls and checks the literal domain argument. CI covers PHP 7.4 and 8.2 so both
   qualified-name token formats are exercised. PHP was already required for lint
   and unit tests; no WP-CLI or Composer dependency is added. POT generation stays
   a separate workflow, since domain validation does not establish string coverage.
