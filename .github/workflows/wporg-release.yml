@@ -26,10 +26,15 @@ jobs:
   publish:
     name: Publish ${{ inputs.version }} to the theme directory
     runs-on: ubuntu-latest
+    # Waits for Dan's approval on the `wordpress-org` environment, which holds
+    # the SVN secrets. The environment must exist with a required reviewer:
+    # GitHub auto-creates a missing one with no protection, and the gate
+    # silently disappears.
+    environment: wordpress-org
     env:
       GH_TOKEN: ${{ github.token }}
-      SVN_USERNAME: ${{ secrets.WPORG_USERNAME }}
-      SVN_PASSWORD: ${{ secrets.WP_ORG_PASSWORD || secrets.WPORG_PASSWORD }}
+      SVN_USERNAME: ${{ secrets.WP_ORG_SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.WP_ORG_SVN_PASSWORD }}
       VERSION: ${{ inputs.version }}
     steps:
       - name: Validate release input
@@ -81,8 +86,8 @@ jobs:
         run: |
           SVN_USERNAME="$(printf '%s' "$SVN_USERNAME" | tr -d '\r\n')"
           SVN_PASSWORD="$(printf '%s' "$SVN_PASSWORD" | tr -d '\r\n')"
-          test -n "$SVN_USERNAME" || { echo "Missing WPORG_USERNAME repository secret." >&2; exit 1; }
-          test -n "$SVN_PASSWORD" || { echo "Missing WP_ORG_PASSWORD repository secret." >&2; exit 1; }
+          test -n "$SVN_USERNAME" || { echo "Missing WP_ORG_SVN_USERNAME secret in the wordpress-org environment." >&2; exit 1; }
+          test -n "$SVN_PASSWORD" || { echo "Missing WP_ORG_SVN_PASSWORD secret in the wordpress-org environment." >&2; exit 1; }
           printf 'SVN_USERNAME=%s\n' "$SVN_USERNAME" >> "$GITHUB_ENV"
           printf 'SVN_PASSWORD=%s\n' "$SVN_PASSWORD" >> "$GITHUB_ENV"
 
